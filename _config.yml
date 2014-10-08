@@ -1,0 +1,11 @@
+permalink: /:categories/:title.html
+pygments: true
+safe: true
+
+paginate: 8
+paginate_path: "page:num"
+
+# presonal config
+title: Fillzero's Blog
+
+markdown: kramdown
