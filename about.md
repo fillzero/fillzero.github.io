@@ -7,7 +7,7 @@ My name is dai liang, I'm 28, living in Nanjing.
 Email: fillzero@163.com
 
 ### Work Experience
-2014/12--Present  Alctel-Lucent Shanghai Bell
+2014/12--Present  Alctel-Lucent Shanghai Bell  
 LTE eNodeB Platform Software Enginner
 
 2013/04--2014/12  Archermind Technology Co.,Ltd  
