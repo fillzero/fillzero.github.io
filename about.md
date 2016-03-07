@@ -3,12 +3,10 @@ layout: default
 title: "关于：About"
 ---
 ####Basic Info
-My name is dai liang, I'm 26, married, living in Nanjing.  
+My name is dai liang, I'm 28, living in Nanjing.  
 Email: fillzero@163.com
 
 ####Work Experience
-2014/12--Present  Alctel-Lucent Shanghai Bell
-
 2013/04--2014/12  Archermind Technology Co.,Ltd  
 Android Development Engineer  
 
