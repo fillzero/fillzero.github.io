@@ -41,7 +41,6 @@ static PageDesc *l1_map[L1_SIZE];
 第一级有1000个指针，每个指向4M内存，
 第二级也是1000个指针，每个指向4K内存。
 
-每4M内存被分成两级页表指针，业目录包含了1000个页，其中每个页指向了4K的物理内存
 </pre>
 
 ![pic](http://fillzero.qiniudn.com/2016_02_14_qemu_03.png)
