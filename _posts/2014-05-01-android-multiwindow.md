@@ -58,7 +58,8 @@ categories: android
    simulator/wrapsim/DevFb.c 
    
    改完后的效果：
-   <img src="http://static.oschina.net/uploads/space/2014/0426/110611_9yTd_1166080.jpg">
+   <img src="http://fillzero.qiniudn.com/2014_10_08_all_0.jpg"><br><br><br>
+   <img src="http://fillzero.qiniudn.com/2014_10_08_all_1.jpg">
 </pre>
 
 --------------------------------------------
