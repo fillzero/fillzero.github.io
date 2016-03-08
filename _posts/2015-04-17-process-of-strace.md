@@ -1,6 +1,6 @@
 ---
 layout: post
-title:  "strace 源码分析 (快速分析代码，半小时搞懂)"
+title:  "strace 源码分析 (快速分析源码，半小时搞懂)"
 date:   2015-04-17 19:35:24
 categories: TOOL
 ---
