@@ -5,6 +5,6 @@ date:   2015-12-16 12:15:13
 categories: qemu
 ---
 
-困了，不想打字描述了，一张图看懂。
+Tcg内部逻辑有点复杂，花点时间整理下，还是用图片描述比较清楚。
  
 ![pic](http://fillzero.qiniudn.com/2015_12_26_qemu_01.png)

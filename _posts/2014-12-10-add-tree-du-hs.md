@@ -28,3 +28,10 @@ tree 版本：1.5.3
 <hr>
 
 patch： <a href="http://fillzero.qiniudn.com/2015_12_10_tree.patch.txt">tree.patch</a>
+
+
+<hr>
+
+再来个分析android 编译后out目录下的不同目标文件夹的大小，亿亩了然哈 ^_^
+
+![pic](http://fillzero.qiniudn.com/2015_12_10_tree_dh_python_format.png)

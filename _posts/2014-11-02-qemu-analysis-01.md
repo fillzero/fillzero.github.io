@@ -1,13 +1,13 @@
 ---
 layout: post
-title:  "Qemu分析 -- 01"
+title:  "Qemu分析 -- 01 (虚拟CPU的创建与使用)"
 date:   2014-11-02 11:15:22
 categories: qemu
 ---
 
 Bochs, JPC都是X86的仿真器，但无论从功能还是执行速度上，完全比不上Qemu。
 
-最近没事分析Qemu。
+最近没事，分析下Qemu。
 
 核心数据结构之一： CPUState,  所有的取址，译码，执行，更新寄存器的操作，全在于此相关。
 

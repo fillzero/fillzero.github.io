@@ -5,7 +5,7 @@ date:   2015-05-07 21:42:39
 categories: qemu
 ---
 
-今天有空，继续分析Qemu， <font color="#FF0000">贵在坚持!</font>
+今天有空，继续分析Qemu。
 
 研究下qemu串口read操作”serial_ioport_read”是如何调用的
 

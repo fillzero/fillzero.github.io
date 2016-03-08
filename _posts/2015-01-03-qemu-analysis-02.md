@@ -1,6 +1,6 @@
 ---
 layout: post
-title:  "Qemu分析 -- 02 (命中缓存及LDUB)"
+title:  "Qemu分析 -- 02 (缓存命中及LDUB)"
 date:   2015-01-03 14:23:19
 categories: qemu
 ---
@@ -32,4 +32,4 @@ Fabrice Bellard 把代码写得很巧妙，<font color="#FF0000">借助编译器
 ![pic](http://fillzero.qiniudn.com/2015_01_03_qemu_02.png)
 
 
-到这里，基本搞懂了Qemu是如何取指令，翻译成host指令，在执行的。
+到这里，基本搞懂了Qemu是如何取指令，翻译成host指令，再执行的。
