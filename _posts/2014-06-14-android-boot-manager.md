@@ -12,8 +12,4 @@ git 地址：<a href="http://git.oschina.net/fillzero_/Android-BootManager">http
 运行截图如下，注意需要有Root权限：
 
 
-![pic](http://static.oschina.net/uploads/space/2014/0614/165937_yyii_1166080.png)
-
-<br>
-
-![pic](http://static.oschina.net/uploads/space/2014/0614/165951_xwnP_1166080.png)
+![pic](http://fillzero.qiniudn.com/2014_06_14_BootManager.jpg)

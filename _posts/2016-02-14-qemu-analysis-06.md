@@ -46,7 +46,7 @@ static PageDesc *l1_map[L1_SIZE];
 ![pic](http://fillzero.qiniudn.com/2016_02_14_qemu_03.png)
 
 <pre>
-上面途中的每个格子都是一个struct PageDesc, 其大小sizeof(PageDesc) = 16,
+上面图中的每个格子都是一个struct PageDesc, 其大小sizeof(PageDesc) = 16,
 所以, 对于这个两级指针，结构体本身需要的内存 = 1000*16 + (1000*16)*1000 = 16K + 16M
 </pre>
 
