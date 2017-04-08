@@ -3,7 +3,7 @@ layout: default
 title: "关于：About"
 ---
 ### Basic Info
-My name is dai liang, I'm 28, living in Nanjing.  
+My name is dai liang, living in Nanjing.  
 Email: fillzero@163.com
 
 ### Work Experience
