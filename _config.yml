@@ -1,5 +1,6 @@
 permalink: /:categories/:title.html
-pygments: true
+#pygments: true
+highlighter: pygments
 safe: true
 
 paginate: 8
@@ -9,3 +10,5 @@ paginate_path: "page:num"
 title: Fillzero's Blog
 
 markdown: kramdown
+
+gems: [jekyll-paginate]
