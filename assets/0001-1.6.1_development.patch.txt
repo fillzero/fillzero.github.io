@@ -1,0 +1,60 @@
+From d75b37f9b3e4c584c0d142aaf642cef29f25c70b Mon Sep 17 00:00:00 2001
+From: test <test@test-desktop.(none)>
+Date: Thu, 20 Mar 2014 23:35:07 -0400
+Subject: [PATCH] 1.6.1_development
+
+---
+ simulator/app/Android.mk     |    2 +-
+ simulator/wrapsim/Android.mk |    8 ++++----
+ simulator/wrapsim/DevAudio.c |    2 +-
+ 3 files changed, 6 insertions(+), 6 deletions(-)
+
+diff --git a/simulator/app/Android.mk b/simulator/app/Android.mk
+index c6e1d14..4c0bc2c 100644
+--- a/simulator/app/Android.mk
++++ b/simulator/app/Android.mk
+@@ -67,7 +67,7 @@ ifeq ($(HOST_OS),linux)
+ 	# without us explicitly setting the LD_LIBRARY_PATH environment variable
+ 	LOCAL_LDLIBS += -Wl,-z,origin
+ 	LOCAL_CFLAGS += -DGTK_NO_CHECK_CASTS -D__WXGTK__ -D_FILE_OFFSET_BITS=64 \
+-   					-D_LARGE_FILES -D_LARGEFILE_SOURCE=1 
++   					-D_LARGE_FILES -D_LARGEFILE_SOURCE=1 -DNO_GCC_PRAGMA 
+ 	LOCAL_LDLIBS += -lrt
+ endif
+ ifeq ($(HOST_OS),darwin)
+diff --git a/simulator/wrapsim/Android.mk b/simulator/wrapsim/Android.mk
+index 0b7890d..1e71a24 100644
+--- a/simulator/wrapsim/Android.mk
++++ b/simulator/wrapsim/Android.mk
+@@ -33,11 +33,11 @@ LOCAL_MODULE := libwrapsim
+ # library or system calls they make could lead to recursive behavior.
+ LOCAL_LDLIBS += -lpthread -ldl
+ 
+-ifeq ($(BUILD_SIM_WITHOUT_AUDIO),true)
++#ifeq ($(BUILD_SIM_WITHOUT_AUDIO),true)
+ LOCAL_CFLAGS += -DBUILD_SIM_WITHOUT_AUDIO=1
+-else
+-LOCAL_LDLIBS += -lesd
+-endif
++#else
++#LOCAL_LDLIBS += -lesd
++#endif
+ 
+ include $(BUILD_SHARED_LIBRARY)
+ 
+diff --git a/simulator/wrapsim/DevAudio.c b/simulator/wrapsim/DevAudio.c
+index 752ee65..7286437 100644
+--- a/simulator/wrapsim/DevAudio.c
++++ b/simulator/wrapsim/DevAudio.c
+@@ -8,7 +8,7 @@
+ #include <stdio.h>
+ #include <stdlib.h>
+ #include <string.h>
+-#include <esd.h>
++//#include <esd.h>
+ 
+ #include <fcntl.h>
+ #include <sys/ioctl.h>
+-- 
+1.7.0.4
+

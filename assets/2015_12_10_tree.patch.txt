@@ -1,0 +1,60 @@
+175a176
+> void psize_du(char *dir, char *name, char *buf, off_t size);		     
+699c700,701
+<     if (sflag) psize(path+strlen(path),(*dir)->size);
+---
+>     //if (sflag) psize(path+strlen(path),(*dir)->size);
+>     if (sflag) psize_du(d, (*dir)->name, path+strlen(path), (*dir)->size);
+1309a1312,1363
+> void psize_du(char *dir, char *name, char *buf, off_t size)
+> {
+>   char *unit="BKMGTPEZY";
+>   char *buf_cmd;
+>   //  int len;
+>   int idx;
+> 
+>   FILE *p;
+>   char line[100];
+>   char result[100];
+>   int  len, i;
+> 
+>   len = strlen(dir) + strlen(name) + 20;
+>   buf_cmd = (char*)malloc(len);
+>   strcpy(buf_cmd, "du -hs ");
+>   strcat(buf_cmd, dir);
+>   strcat(buf_cmd, "/");
+>   strcat(buf_cmd, name);
+> 
+>   p = popen(buf_cmd, "r");
+>   if(p == NULL)
+>       return;
+>   else {
+>       len = fread( line, 99, 1, p );
+>       
+> 	i = 0;
+> 	while ( i < strlen(line) ) {
+> 	    
+> 	    if ((line[i] == '\t') || (line[i] == 0x0d) || (line[i] == 0x0a)) {
+> 		result[i] = 0;
+> 		break;
+> 	    } else {
+> 		result[i] = line[i];
+> 	    }
+> 	    i++;
+> 	}
+> 	pclose(p);
+>   }
+>   sprintf(buf, " %s", result);
+>   //  printf("%s\n", result);
+>   
+> #if 0
+>   if (!hflag) sprintf(buf, sizeof(off_t) == sizeof(long long)? " %11lld" : " %9ld", size);
+>   else {
+>     for (idx=size<1024?0:1; size >= (1024*1024); idx++,size>>=10);
+>     if (!idx) sprintf(buf, " %4d", (int)size);
+>     else sprintf(buf, ((size>>10) >= 10)? " %3.0f%c" : " %3.1f%c", (float)size/(float)1024,unit[idx]);
+>   }
+> #endif
+> 
+> }
+> 

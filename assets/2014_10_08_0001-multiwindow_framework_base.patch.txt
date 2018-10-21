@@ -1,0 +1,743 @@
+From 6940cfb6cc36d841b2bf0b8dc12e9d014df21018 Mon Sep 17 00:00:00 2001
+From: test <test@test-desktop.(none)>
+Date: Fri, 25 Apr 2014 13:42:48 +0800
+Subject: [PATCH] multiwindow_framework_base
+
+---
+ core/java/android/app/Activity.java                |   75 +++++++++++++++++++-
+ core/java/android/app/ActivityManagerNative.java   |   19 +++++
+ core/java/android/app/IActivityManager.java        |    2 +
+ core/java/android/content/IntentFilter.java        |    8 +-
+ .../android/content/res/CompatibilityInfo.java     |    4 +-
+ core/java/android/content/res/StringBlock.java     |    2 +-
+ core/java/android/database/sqlite/SQLiteDebug.java |    4 +-
+ core/java/android/util/Config.java                 |    2 +-
+ core/java/android/util/DisplayMetrics.java         |    4 +-
+ core/java/android/util/Log.java                    |    8 +-
+ core/java/android/view/SurfaceView.java            |    6 +-
+ core/java/android/view/View.java                   |    8 +-
+ core/java/android/view/ViewConfiguration.java      |    2 +-
+ core/java/android/view/ViewGroup.java              |    4 +-
+ core/java/android/view/WindowManagerImpl.java      |    5 +-
+ core/res/res/layout/screen_title.xml               |   24 ++++++-
+ core/res/res/values/strings.xml                    |    4 +-
+ libs/utils/IPCThreadState.cpp                      |    4 +-
+ libs/utils/MemoryDealer.cpp                        |    3 +-
+ .../java/com/android/server/IntentResolver.java    |    2 +-
+ services/java/com/android/server/ProcessStats.java |    2 +-
+ services/java/com/android/server/SystemServer.java |    4 +-
+ services/java/com/android/server/Watchdog.java     |    2 +-
+ .../com/android/server/WindowManagerService.java   |   16 ++--
+ .../android/server/am/ActivityManagerService.java  |   46 +++++++++++--
+ 25 files changed, 206 insertions(+), 54 deletions(-)
+
+diff --git a/core/java/android/app/Activity.java b/core/java/android/app/Activity.java
+index f2905a7..c956092 100644
+--- a/core/java/android/app/Activity.java
++++ b/core/java/android/app/Activity.java
+@@ -32,6 +32,7 @@ import android.database.Cursor;
+ import android.graphics.Bitmap;
+ import android.graphics.Canvas;
+ import android.graphics.drawable.Drawable;
++import android.graphics.Paint;
+ import android.media.AudioManager;
+ import android.net.Uri;
+ import android.os.Bundle;
+@@ -1847,8 +1848,80 @@ public class Activity extends ContextThemeWrapper
+      * @return Return true if you have consumed the event, false if you haven't.
+      * The default implementation always returns false.
+      */
++    private int mLastMotionX;
++    private int mLastMotionY;
++    WindowManager.LayoutParams l;
++    
++    Canvas canvas;
++    Paint mIrqPaint;
+     public boolean onTouchEvent(MotionEvent event) {
+-        return false;
++		final int action = event.getAction();
++        final int x = (int)event.getX();
++        final int y = (int)event.getY();
++
++        switch (action) {
++        case MotionEvent.ACTION_DOWN:
++            // Remember where the motion event started
++//            Window mWindow1 = getWindow();
++            mLastMotionX = x;
++            mLastMotionY = y;
++//			mIrqPaint = new Paint();
++//			mIrqPaint.setARGB(0x80, 0, 0, 0xff);
++//			mIrqPaint.setShadowLayer(2, 0, 0, 0xff000000);
++//			mWindow1.getDecorView().setDrawingCacheEnabled(true);
++            
++            l = mWindow.getAttributes();
++            System.out.println("####onTouchEvent,last.x:" + mLastMotionX + " last.y:" + mLastMotionY);
++            System.out.println("####onTouchEvent,l.with:" + l.width      + " l.heit:" + l.height);
++            if(y < 20) {
++				int xOffset = l.width - x;
++				if(xOffset < 10) {
++					
++				} else if(xOffset < 35) {
++					l.width += 50; l.height+=50;
++					mWindow.getWindowManager().updateViewLayout(mWindow.getDecorView(), l);
++				} else if(xOffset < 50) {
++					l.width -= 50; l.height-=50;
++					mWindow.getWindowManager().updateViewLayout(mWindow.getDecorView(), l);
++				}
++			}
++//			System.out.println("###onTouchEvent taskAffinity: " + mActivityInfo.taskAffinity + " packagename: " + mActivityInfo.packageName);
++			try { ActivityManagerNative.getDefault().moveTaskNameToFront(mActivityInfo.taskAffinity); } catch (Exception e) {Log.e("###ERROR###", "error:" + e.toString());}
++			
++            break;
++        case MotionEvent.ACTION_MOVE:
++//			if(y > 30) break;
++			Window mWindow = getWindow();
++			View v = mWindow.getDecorView();
++//			canvas = v.getAttachInfo_mCanvas();
++			
++//			canvas.drawRect((float)0,(float)0,(float)100,(float)200, mIrqPaint);
++			int mTouchOffsetX = mLastMotionX - v.getScrollX();
++			l = mWindow.getAttributes();
++//			System.out.println("####onTouchEvent,event.x: " + x + " event.y:" + y + " last.x:" + mLastMotionX + " last.y:" + mLastMotionY + "  layout.x:" + l.x + " layout.y:" + l.y);
++//			System.out.println("####before,l.x:"  + l.x + " layout.y:" + l.y);			
++			System.out.println("####onTouchEvent,event.x: " + x + " last.x:" + mLastMotionX + " v.getScrollx: " + v.getScrollX() + " touchx: " + mTouchOffsetX);
++			System.out.println("####before,l.x:"  + l.x);
++			l.x = l.x + x - mLastMotionX;
++			l.y = l.y + y - mLastMotionY;
++			
++			System.out.println("####after,l.x:"  + l.x);
++			
++			mLastMotionX = x;
++            mLastMotionY = y;
++            
++            mWindow.getWindowManager().updateViewLayout(mWindow.getDecorView(), l);
++			break;/*
++		 case MotionEvent.ACTION_UP:
++			l.x = x;
++			l.y = y;
++			getWindow().getWindowManager().updateViewLayout(getWindow().getDecorView(), l);
++			break;*/
++    	}
++   	
++
++    	return true;
++        //return false;
+     }
+     
+     /**
+diff --git a/core/java/android/app/ActivityManagerNative.java b/core/java/android/app/ActivityManagerNative.java
+index 447512a..c70a0f1 100644
+--- a/core/java/android/app/ActivityManagerNative.java
++++ b/core/java/android/app/ActivityManagerNative.java
+@@ -417,6 +417,14 @@ public abstract class ActivityManagerNative extends Binder implements IActivityM
+             reply.writeNoException();
+             return true;
+         }
++        
++        case MOVE_TASKNAME_TO_FRONT_TRANSACTION: {
++            data.enforceInterface(IActivityManager.descriptor);
++            String taskName = data.readString();
++            moveTaskNameToFront(taskName);
++            reply.writeNoException();
++            return true;
++        }
+ 
+         case MOVE_TASK_TO_BACK_TRANSACTION: {
+             data.enforceInterface(IActivityManager.descriptor);
+@@ -1489,6 +1497,17 @@ class ActivityManagerProxy implements IActivityManager
+         data.recycle();
+         reply.recycle();
+     }
++    public void moveTaskNameToFront(String taskAffinity) throws RemoteException
++    {
++        Parcel data = Parcel.obtain();
++        Parcel reply = Parcel.obtain();
++        data.writeInterfaceToken(IActivityManager.descriptor);
++        data.writeString(taskAffinity);
++        mRemote.transact(MOVE_TASKNAME_TO_FRONT_TRANSACTION, data, reply, 0);
++        reply.readException();
++        data.recycle();
++        reply.recycle();
++    }
+     public void moveTaskToBack(int task) throws RemoteException
+     {
+         Parcel data = Parcel.obtain();
+diff --git a/core/java/android/app/IActivityManager.java b/core/java/android/app/IActivityManager.java
+index f6ef549..01b650a 100644
+--- a/core/java/android/app/IActivityManager.java
++++ b/core/java/android/app/IActivityManager.java
+@@ -118,6 +118,7 @@ public interface IActivityManager extends IInterface {
+     public List<ActivityManager.ProcessErrorStateInfo> getProcessesInErrorState()
+             throws RemoteException;
+     public void moveTaskToFront(int task) throws RemoteException;
++    public void moveTaskNameToFront(String taskName) throws RemoteException;
+     public void moveTaskToBack(int task) throws RemoteException;
+     public boolean moveActivityTaskToBack(IBinder token, boolean nonRoot) throws RemoteException;
+     public void moveTaskBackwards(int task) throws RemoteException;
+@@ -427,4 +428,5 @@ public interface IActivityManager extends IInterface {
+     int START_ACTIVITY_IN_PACKAGE_TRANSACTION = IBinder.FIRST_CALL_TRANSACTION+94;
+     int KILL_APPLICATION_WITH_UID_TRANSACTION = IBinder.FIRST_CALL_TRANSACTION+95;
+     int CLOSE_SYSTEM_DIALOGS_TRANSACTION = IBinder.FIRST_CALL_TRANSACTION+96;
++    int MOVE_TASKNAME_TO_FRONT_TRANSACTION = IBinder.FIRST_CALL_TRANSACTION+97;    
+ }
+diff --git a/core/java/android/content/IntentFilter.java b/core/java/android/content/IntentFilter.java
+index 365f269..a66cdf4 100644
+--- a/core/java/android/content/IntentFilter.java
++++ b/core/java/android/content/IntentFilter.java
+@@ -673,7 +673,7 @@ public class IntentFilter implements Parcelable {
+             if (host == null) {
+                 return NO_MATCH_DATA;
+             }
+-            if (Config.LOGV) Log.v("IntentFilter",
++            if (false/*Config.LOGV*/) Log.v("IntentFilter",
+                     "Match host " + host + ": " + mHost);
+             if (mWild) {
+                 if (host.length() < mHost.length()) {
+@@ -1098,14 +1098,14 @@ public class IntentFilter implements Parcelable {
+     public final int match(String action, String type, String scheme,
+             Uri data, Set<String> categories, String logTag) {
+         if (action != null && !matchAction(action)) {
+-            if (Config.LOGV) Log.v(
++            if (false/*Config.LOGV*/) Log.v(
+                 logTag, "No matching action " + action + " for " + this);
+             return NO_MATCH_ACTION;
+         }
+ 
+         int dataMatch = matchData(type, scheme, data);
+         if (dataMatch < 0) {
+-            if (Config.LOGV) {
++            if (false/*Config.LOGV*/) {
+                 if (dataMatch == NO_MATCH_TYPE) {
+                     Log.v(logTag, "No matching type " + type
+                           + " for " + this);
+@@ -1120,7 +1120,7 @@ public class IntentFilter implements Parcelable {
+ 
+         String categoryMatch = matchCategories(categories);
+         if (categoryMatch != null) {
+-            if (Config.LOGV) Log.v(
++            if (false/*Config.LOGV*/) Log.v(
+                 logTag, "No matching category "
+                 + categoryMatch + " for " + this);
+             return NO_MATCH_CATEGORY;
+diff --git a/core/java/android/content/res/CompatibilityInfo.java b/core/java/android/content/res/CompatibilityInfo.java
+index 50faf57..036c499 100644
+--- a/core/java/android/content/res/CompatibilityInfo.java
++++ b/core/java/android/content/res/CompatibilityInfo.java
+@@ -48,12 +48,12 @@ public class CompatibilityInfo {
+     /**
+      * The default width of the screen in portrait mode. 
+      */
+-    public static final int DEFAULT_PORTRAIT_WIDTH = 320;
++    public static final int DEFAULT_PORTRAIT_WIDTH = 1080;//320;
+ 
+     /**
+      * The default height of the screen in portrait mode. 
+      */    
+-    public static final int DEFAULT_PORTRAIT_HEIGHT = 480;
++    public static final int DEFAULT_PORTRAIT_HEIGHT = 720;//480;
+ 
+     /**
+      *  A compatibility flags
+diff --git a/core/java/android/content/res/StringBlock.java b/core/java/android/content/res/StringBlock.java
+index e684cb8..27a2761 100644
+--- a/core/java/android/content/res/StringBlock.java
++++ b/core/java/android/content/res/StringBlock.java
+@@ -33,7 +33,7 @@ import com.android.internal.util.XmlUtils;
+  */
+ final class StringBlock {
+     private static final String TAG = "AssetManager";
+-    private static final boolean localLOGV = Config.LOGV || false;
++    private static final boolean localLOGV = false;//Config.LOGV || false;
+ 
+     private final int mNative;
+     private final boolean mUseSparse;
+diff --git a/core/java/android/database/sqlite/SQLiteDebug.java b/core/java/android/database/sqlite/SQLiteDebug.java
+index d04afb0..a728abc 100644
+--- a/core/java/android/database/sqlite/SQLiteDebug.java
++++ b/core/java/android/database/sqlite/SQLiteDebug.java
+@@ -27,13 +27,13 @@ public final class SQLiteDebug {
+     /**
+      * Controls the printing of SQL statements as they are executed.
+      */
+-    public static final boolean DEBUG_SQL_STATEMENTS = Config.LOGV;
++    public static final boolean DEBUG_SQL_STATEMENTS = false;//Config.LOGV;
+ 
+     /**
+      * Controls the stack trace reporting of active cursors being
+      * finalized.
+      */
+-    public static final boolean DEBUG_ACTIVE_CURSOR_FINALIZATION = Config.LOGV;
++    public static final boolean DEBUG_ACTIVE_CURSOR_FINALIZATION = false;//Config.LOGV;
+ 
+     /**
+      * Controls the tracking of time spent holding the database lock. 
+diff --git a/core/java/android/util/Config.java b/core/java/android/util/Config.java
+index 9571041..7666e63 100644
+--- a/core/java/android/util/Config.java
++++ b/core/java/android/util/Config.java
+@@ -49,7 +49,7 @@ public final class Config
+      * Always false.
+      */
+     @Deprecated
+-    public static final boolean LOGV = false;
++    public static final boolean LOGV = false;//true;//false;
+ 
+     /**
+      * Always true.
+diff --git a/core/java/android/util/DisplayMetrics.java b/core/java/android/util/DisplayMetrics.java
+index 74f01cc..7b9d50a 100644
+--- a/core/java/android/util/DisplayMetrics.java
++++ b/core/java/android/util/DisplayMetrics.java
+@@ -187,14 +187,14 @@ public class DisplayMetrics {
+                     return;
+                 }
+             }
+-            
++/*            
+             if (defaultWidth < widthPixels) {
+                 // content/window's x offset in original pixels
+                 widthPixels = defaultWidth;
+             }
+             if (defaultHeight < heightPixels) {
+                 heightPixels = defaultHeight;
+-            }
++            }*/
+         }
+         
+         if (compatibilityInfo.isScalingRequired()) {
+diff --git a/core/java/android/util/Log.java b/core/java/android/util/Log.java
+index 2572679..d18c923 100644
+--- a/core/java/android/util/Log.java
++++ b/core/java/android/util/Log.java
+@@ -91,7 +91,7 @@ public final class Log {
+      * @param msg The message you would like logged.
+      */
+     public static int v(String tag, String msg) {
+-        return println(VERBOSE, tag, msg);
++        return println(INFO/*VERBOSE*/, tag, msg);
+     }
+ 
+     /**
+@@ -102,7 +102,7 @@ public final class Log {
+      * @param tr An exception to log
+      */
+     public static int v(String tag, String msg, Throwable tr) {
+-        return println(VERBOSE, tag, msg + '\n' + getStackTraceString(tr));
++        return println(INFO/*VERBOSE*/, tag, msg + '\n' + getStackTraceString(tr));
+     }
+ 
+     /**
+@@ -112,7 +112,7 @@ public final class Log {
+      * @param msg The message you would like logged.
+      */
+     public static int d(String tag, String msg) {
+-        return println(DEBUG, tag, msg);
++        return println(INFO/*DEBUG*/, tag, msg);
+     }
+ 
+     /**
+@@ -123,7 +123,7 @@ public final class Log {
+      * @param tr An exception to log
+      */
+     public static int d(String tag, String msg, Throwable tr) {
+-        return println(DEBUG, tag, msg + '\n' + getStackTraceString(tr));
++        return println(INFO/*DEBUG*/, tag, msg + '\n' + getStackTraceString(tr));
+     }
+ 
+     /**
+diff --git a/core/java/android/view/SurfaceView.java b/core/java/android/view/SurfaceView.java
+index 9cf7092..854044a 100644
+--- a/core/java/android/view/SurfaceView.java
++++ b/core/java/android/view/SurfaceView.java
+@@ -333,9 +333,9 @@ public class SurfaceView extends View {
+                               | WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE
+                               | WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE
+                               ;
+-                if (!getContext().getResources().getCompatibilityInfo().supportsScreen()) {
+-                    mLayout.flags |= WindowManager.LayoutParams.FLAG_COMPATIBLE_WINDOW;
+-                }
++//                if (!getContext().getResources().getCompatibilityInfo().supportsScreen()) {
++//                    mLayout.flags |= WindowManager.LayoutParams.FLAG_COMPATIBLE_WINDOW;
++//                }
+ 
+                 mLayout.memoryType = mRequestedType;
+ 
+diff --git a/core/java/android/view/View.java b/core/java/android/view/View.java
+index 7ed2712..212065f 100644
+--- a/core/java/android/view/View.java
++++ b/core/java/android/view/View.java
+@@ -1502,7 +1502,7 @@ public class View implements Drawable.Callback, KeyEvent.Callback, Accessibility
+     /**
+      * {@hide}
+      */
+-    AttachInfo mAttachInfo;
++    public AttachInfo mAttachInfo;
+ 
+     /**
+      * {@hide}
+@@ -8414,7 +8414,7 @@ public class View implements Drawable.Callback, KeyEvent.Callback, Accessibility
+          */
+         void onCreateContextMenu(ContextMenu menu, View v, ContextMenuInfo menuInfo);
+     }
+-
++public Canvas getAttachInfo_mCanvas() {return mAttachInfo.mCanvas;}
+     private final class UnsetPressedState implements Runnable {
+         public void run() {
+             setPressed(false);
+@@ -8657,8 +8657,8 @@ public class View implements Drawable.Callback, KeyEvent.Callback, Accessibility
+         /**
+          * A Canvas used by the view hierarchy to perform bitmap caching.
+          */
+-        Canvas mCanvas;
+-
++        public Canvas mCanvas;
++		public Canvas getmCanvas() {return mCanvas;}
+         /**
+          * A Handler supplied by a view's {@link android.view.ViewRoot}. This
+          * handler can be used to pump events in the UI events queue.
+diff --git a/core/java/android/view/ViewConfiguration.java b/core/java/android/view/ViewConfiguration.java
+index 0e36ec2..b365f12 100644
+--- a/core/java/android/view/ViewConfiguration.java
++++ b/core/java/android/view/ViewConfiguration.java
+@@ -117,7 +117,7 @@ public class ViewConfiguration {
+      * should be at least equal to the size of the screen in ARGB888 format.
+      */
+     @Deprecated
+-    private static final int MAXIMUM_DRAWING_CACHE_SIZE = 320 * 480 * 4; // HVGA screen, ARGB8888
++    private static final int MAXIMUM_DRAWING_CACHE_SIZE = 1080*720*4;//320 * 480 * 4; // HVGA screen, ARGB8888
+ 
+     /**
+      * The coefficient of friction applied to flings/scrolls.
+diff --git a/core/java/android/view/ViewGroup.java b/core/java/android/view/ViewGroup.java
+index f7b7f02..1df38c3 100644
+--- a/core/java/android/view/ViewGroup.java
++++ b/core/java/android/view/ViewGroup.java
+@@ -1433,12 +1433,12 @@ public abstract class ViewGroup extends View implements ViewParent, ViewManager
+         // Sets the flag as early as possible to allow draw() implementations
+         // to call invalidate() successfully when doing animations
+         child.mPrivateFlags |= DRAWN;
+-
++/*
+         if (!concatMatrix && canvas.quickReject(cl, ct, cr, cb, Canvas.EdgeType.BW) &&
+                 (child.mPrivateFlags & DRAW_ANIMATION) == 0) {
+             return more;
+         }
+-
++*/
+         child.computeScroll();
+ 
+         final int sx = child.mScrollX;
+diff --git a/core/java/android/view/WindowManagerImpl.java b/core/java/android/view/WindowManagerImpl.java
+index 0973599..b321512 100644
+--- a/core/java/android/view/WindowManagerImpl.java
++++ b/core/java/android/view/WindowManagerImpl.java
+@@ -106,8 +106,9 @@ public class WindowManagerImpl implements WindowManager {
+         }
+ 
+         final WindowManager.LayoutParams wparams
+-                = (WindowManager.LayoutParams)params;
+-        
++                = (WindowManager.LayoutParams)params; Log.v("window", " wparams.packageName:" + wparams.packageName);
++//if(wparams.packageName != null && (wparams.packageName.equals("com.example.testdialog") || wparams.packageName.equals("com.android.browser") || wparams.packageName.equals("com.android.camera")  || wparams.packageName.equals("com.example.android.apis")) ) {wparams.width=250;wparams.height=320;}//wparams.x=20; wparams.y=50;}        
++if(wparams.packageName != null && !wparams.packageName.equals("com.android.launcher")) { wparams.width=360;wparams.height=420; if(wparams.packageName.equals("com.example.testmedia")) {wparams.width=660;wparams.height=340;}}
+         ViewRoot root;
+         View panelParentView = null;
+         
+diff --git a/core/res/res/layout/screen_title.xml b/core/res/res/layout/screen_title.xml
+index 5fcd2dd..7f2168b 100644
+--- a/core/res/res/layout/screen_title.xml
++++ b/core/res/res/layout/screen_title.xml
+@@ -22,7 +22,7 @@ enabled.
+ <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+     android:orientation="vertical"
+     android:fitsSystemWindows="true">
+-    <FrameLayout
++    <RelativeLayout
+         android:layout_width="fill_parent" 
+         android:layout_height="?android:attr/windowTitleSize"
+         style="?android:attr/windowTitleBackgroundStyle">
+@@ -33,7 +33,27 @@ enabled.
+             android:gravity="center_vertical"
+             android:layout_width="fill_parent"
+             android:layout_height="fill_parent" />
+-    </FrameLayout>
++       <TextView android:id="@+id/windowdecrease"
++			style="?android:attr/windowTitleStyle"
++			android:layout_width="wrap_content"
++			android:layout_height="wrap_content"
++			android:layout_alignParentRight="true"
++			android:layout_marginRight="40dp"
++			android:text="@android:string/window_decrease" />
++       <TextView android:id="@+id/windowdeincrease"
++			style="?android:attr/windowTitleStyle"
++			android:layout_width="wrap_content"
++			android:layout_height="wrap_content"
++			android:layout_alignParentRight="true"
++			android:layout_marginRight="20dp"
++			android:text="@android:string/window_increase" />			
++		<TextView android:id="@+id/windowclose"
++			style="?android:attr/windowTitleStyle"
++			android:layout_width="wrap_content"
++			android:layout_height="wrap_content"
++			android:layout_alignParentRight="true"
++			android:text="@android:string/window_close" />
++    </RelativeLayout>
+     <FrameLayout android:id="@android:id/content"
+         android:layout_width="fill_parent" 
+         android:layout_height="0dip"
+diff --git a/core/res/res/values/strings.xml b/core/res/res/values/strings.xml
+index aaaebbb..994a553 100644
+--- a/core/res/res/values/strings.xml
++++ b/core/res/res/values/strings.xml
+@@ -1887,5 +1887,7 @@
+ 
+      <!-- Title for the unselected state of a CompoundButton. -->
+      <string name="accessibility_compound_button_unselected">not checked</string>
+-
++     <string name="window_decrease">-</string>
++     <string name="window_increase">+</string>
++     <string name="window_close">x</string>
+ </resources>
+diff --git a/libs/utils/IPCThreadState.cpp b/libs/utils/IPCThreadState.cpp
+index 04ae142..180f453 100644
+--- a/libs/utils/IPCThreadState.cpp
++++ b/libs/utils/IPCThreadState.cpp
+@@ -370,8 +370,8 @@ void IPCThreadState::clearCaller()
+         mCallingPid = getpid();
+         mCallingUid = getuid();
+     } else {
+-        mCallingPid = -1;
+-        mCallingUid = -1;
++        mCallingPid = getpid();//-1;
++        mCallingUid = 1000;//-1;
+     }
+ }
+ 
+diff --git a/libs/utils/MemoryDealer.cpp b/libs/utils/MemoryDealer.cpp
+index cf8201b..907599a 100644
+--- a/libs/utils/MemoryDealer.cpp
++++ b/libs/utils/MemoryDealer.cpp
+@@ -394,7 +394,7 @@ SimpleMemory::~SimpleMemory()
+ #ifndef NDEBUG
+         memset(start_ptr, 0xdf, size);
+ #endif
+-
++/*
+         // MADV_REMOVE is not defined on Dapper based Goobuntu 
+ #ifdef MADV_REMOVE 
+         if (size) {
+@@ -403,6 +403,7 @@ SimpleMemory::~SimpleMemory()
+                     start_ptr, size, err<0 ? strerror(errno) : "Ok");
+         }
+ #endif
++*/
+     }
+ }
+ 
+diff --git a/services/java/com/android/server/IntentResolver.java b/services/java/com/android/server/IntentResolver.java
+index d8c8c90..90cf2d2 100644
+--- a/services/java/com/android/server/IntentResolver.java
++++ b/services/java/com/android/server/IntentResolver.java
+@@ -42,7 +42,7 @@ import android.content.IntentFilter;
+ public class IntentResolver<F extends IntentFilter, R extends Object> {
+     final private static String TAG = "IntentResolver";
+     final private static boolean DEBUG = false;
+-    final private static boolean localLOGV = DEBUG || Config.LOGV;
++    final private static boolean localLOGV = DEBUG;// || Config.LOGV;
+ 
+     public void addFilter(F f) {
+         if (localLOGV) {
+diff --git a/services/java/com/android/server/ProcessStats.java b/services/java/com/android/server/ProcessStats.java
+index af80e20..56357f0 100644
+--- a/services/java/com/android/server/ProcessStats.java
++++ b/services/java/com/android/server/ProcessStats.java
+@@ -34,7 +34,7 @@ import java.util.Comparator;
+ public class ProcessStats {
+     private static final String TAG = "ProcessStats";
+     private static final boolean DEBUG = false;
+-    private static final boolean localLOGV = DEBUG || Config.LOGV;
++    private static final boolean localLOGV = DEBUG;// || Config.LOGV;
+     
+     private static final int[] PROCESS_STATS_FORMAT = new int[] {
+         PROC_SPACE_TERM,
+diff --git a/services/java/com/android/server/SystemServer.java b/services/java/com/android/server/SystemServer.java
+index b2848ac..f18adcc 100644
+--- a/services/java/com/android/server/SystemServer.java
++++ b/services/java/com/android/server/SystemServer.java
+@@ -304,7 +304,7 @@ class ServerThread extends Thread {
+             } catch (Throwable e) {
+                 Log.e(TAG, "Failure starting Audio Service", e);
+             }
+-
++/*
+             try {
+                 Log.i(TAG, "Starting HeadsetObserver");
+                 // Listen for wired headset changes
+@@ -312,7 +312,7 @@ class ServerThread extends Thread {
+             } catch (Throwable e) {
+                 Log.e(TAG, "Failure starting HeadsetObserver", e);
+             }
+-
++*/
+             try {
+                 if (INCLUDE_BACKUP) {
+                     Log.i(TAG, "Starting Backup Service");
+diff --git a/services/java/com/android/server/Watchdog.java b/services/java/com/android/server/Watchdog.java
+index 68bf4fb..74c759f 100644
+--- a/services/java/com/android/server/Watchdog.java
++++ b/services/java/com/android/server/Watchdog.java
+@@ -43,7 +43,7 @@ import java.util.Calendar;
+ /** This class calls its monitor every minute. Killing this process if they don't return **/
+ public class Watchdog extends Thread {
+     static final String TAG = "Watchdog";
+-    static final boolean localLOGV = false || Config.LOGV;
++    static final boolean localLOGV = false;// || Config.LOGV;
+ 
+     // Set this to true to use debug default values.
+     static final boolean DB = false;
+diff --git a/services/java/com/android/server/WindowManagerService.java b/services/java/com/android/server/WindowManagerService.java
+index d4c27b7..5cfc538 100644
+--- a/services/java/com/android/server/WindowManagerService.java
++++ b/services/java/com/android/server/WindowManagerService.java
+@@ -4778,7 +4778,7 @@ public class WindowManagerService extends IWindowManager.Stub implements Watchdo
+                                 }
+                                 continue;
+                             }
+-                            tmpRect.set(child.mFrame);
++                            tmpRect.set(child.mFrame);/*
+                             if (child.mTouchableInsets == ViewTreeObserver
+                                         .InternalInsetsInfo.TOUCHABLE_INSETS_CONTENT) {
+                                 // The touch is inside of the window if it is
+@@ -4797,11 +4797,11 @@ public class WindowManagerService extends IWindowManager.Stub implements Watchdo
+                                 tmpRect.top += child.mGivenVisibleInsets.top;
+                                 tmpRect.right -= child.mGivenVisibleInsets.right;
+                                 tmpRect.bottom -= child.mGivenVisibleInsets.bottom;
+-                            }
++                            }*/
+                             final int touchFlags = flags &
+                                 (WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE
+                                 |WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL);
+-                            if (tmpRect.contains(x, y) || touchFlags == 0) {
++                            if (tmpRect.contains(x, y)) {//|| touchFlags == 0) {
+                                 //Log.i(TAG, "Using this target!");
+                                 if (!screenWasOff || (flags &
+                                         WindowManager.LayoutParams.FLAG_TOUCHABLE_WHEN_WAKING) != 0) {
+@@ -5893,20 +5893,19 @@ public class WindowManagerService extends IWindowManager.Stub implements Watchdo
+ 
+         public void computeFrameLw(Rect pf, Rect df, Rect cf, Rect vf) {
+             mHaveFrame = true;
+-
+             final Rect container = mContainingFrame;
+             container.set(pf);
+ 
+             final Rect display = mDisplayFrame;
+             display.set(df);
+-
++/*
+             if ((mAttrs.flags & FLAG_COMPATIBLE_WINDOW) != 0) {
+                 container.intersect(mCompatibleScreenFrame);
+                 if ((mAttrs.flags & FLAG_LAYOUT_NO_LIMITS) == 0) {
+                     display.intersect(mCompatibleScreenFrame);
+                 }
+             }
+-
++*/
+             final int pw = container.right - container.left;
+             final int ph = container.bottom - container.top;
+ 
+@@ -5929,11 +5928,12 @@ public class WindowManagerService extends IWindowManager.Stub implements Watchdo
+ 
+             //System.out.println("In: w=" + w + " h=" + h + " container=" +
+             //                   container + " x=" + mAttrs.x + " y=" + mAttrs.y);
+-
++//if(mAttrs.width==304) {mAttrs.width = 420;}
++System.out.println("###before Gravaity.appli(), frame:" + frame.toString() + " container:" + container.toString() + " w: " + w + " h: " + h + " mAttrs.x: " + mAttrs.x + " mAttrs.y:" + mAttrs.y + " mAttrs:" + mAttrs);
+             Gravity.apply(mAttrs.gravity, w, h, container,
+                     (int) (mAttrs.x + mAttrs.horizontalMargin * pw),
+                     (int) (mAttrs.y + mAttrs.verticalMargin * ph), frame);
+-
++System.out.println("###after Gravaity.appli(), frame:" + frame.toString());
+             //System.out.println("Out: " + mFrame);
+ 
+             // Now make sure the window fits in the overall display.
+diff --git a/services/java/com/android/server/am/ActivityManagerService.java b/services/java/com/android/server/am/ActivityManagerService.java
+index 5d34d00..0514784 100644
+--- a/services/java/com/android/server/am/ActivityManagerService.java
++++ b/services/java/com/android/server/am/ActivityManagerService.java
+@@ -2352,15 +2352,15 @@ public final class ActivityManagerService extends ActivityManagerNative implemen
+                     if (r.visible) {
+                         if (DEBUG_VISBILITY) Log.v(
+                                 TAG, "Making invisible: " + r);
+-                        r.visible = false;
++                        r.visible = true;//false;
+                         try {
+-                            mWindowManager.setAppVisibility(r, false);
++                            mWindowManager.setAppVisibility(r, true);//false);
+                             if ((r.state == ActivityState.STOPPING
+                                     || r.state == ActivityState.STOPPED)
+                                     && r.app != null && r.app.thread != null) {
+                                 if (DEBUG_VISBILITY) Log.v(
+                                         TAG, "Scheduling invisibility: " + r);
+-                                r.app.thread.scheduleWindowVisibility(r, false);
++                                r.app.thread.scheduleWindowVisibility(r, true);//false);
+                             }
+                         } catch (Exception e) {
+                             // Just skip on any failure; we'll make it
+@@ -6803,17 +6803,51 @@ public final class ActivityManagerService extends ActivityManagerNative implemen
+             }
+             final long origId = Binder.clearCallingIdentity();
+             try {
+-                int N = mRecentTasks.size();
++                int N = mRecentTasks.size();	for (int i=0; i<N; i++) { System.out.println("####Show#####["+i+"]"+ mRecentTasks.get(i).toString());}
+                 for (int i=0; i<N; i++) {
+-                    TaskRecord tr = mRecentTasks.get(i);
++                    TaskRecord tr = mRecentTasks.get(i);	Log.i("###TaskRecord", " tr.taskId=" +  tr.taskId);
+                     if (tr.taskId == task) {
++						Log.i("###TaskRecord", " moveTaskToFrontLocked():" +  tr.toString());
++                        moveTaskToFrontLocked(tr);
++                        return;
++                    }
++                }
++                for (int i=mHistory.size()-1; i>=0; i--) {
++                    HistoryRecord hr = (HistoryRecord)mHistory.get(i);
++                    if (hr.task.taskId == task) {	Log.i("###HistoryRecord", " moveTaskToFrontLocked():" +  hr.toString());
++                        moveTaskToFrontLocked(hr.task);
++                        return;
++                    }
++                }
++            } finally {
++                Binder.restoreCallingIdentity(origId);
++            }
++        }
++    }
++    
++    public void moveTaskNameToFront(String taskAffinity) {
++        enforceCallingPermission(android.Manifest.permission.REORDER_TASKS,
++                "moveTaskToFront()");
++
++        synchronized(this) {
++            if (!checkAppSwitchAllowedLocked(Binder.getCallingPid(),
++                    Binder.getCallingUid(), "Task to front")) {
++                return;
++            }
++            final long origId = Binder.clearCallingIdentity();
++            try {
++                int N = mRecentTasks.size();	for (int i=0; i<N; i++) { System.out.println("####Show#####["+i+"]"+ mRecentTasks.get(i).toString());}
++                for (int i=0; i<N; i++) {
++                    TaskRecord tr = mRecentTasks.get(i);	Log.i("###TaskRecord", " tr.taskId=" +  tr.taskId);
++                    if (tr.affinity.equals(taskAffinity)) {
++						Log.i("###TaskRecord", " moveTaskToFrontLocked():" +  tr.toString());
+                         moveTaskToFrontLocked(tr);
+                         return;
+                     }
+                 }
+                 for (int i=mHistory.size()-1; i>=0; i--) {
+                     HistoryRecord hr = (HistoryRecord)mHistory.get(i);
+-                    if (hr.task.taskId == task) {
++                    if (hr.task.affinity.equals(taskAffinity)) {	Log.i("###HistoryRecord", " moveTaskToFrontLocked():" +  hr.toString());
+                         moveTaskToFrontLocked(hr.task);
+                         return;
+                     }
+-- 
+1.7.0.4
+

@@ -1,0 +1,93 @@
+From 07c2c88af49724afec69420e8649d071f703694c Mon Sep 17 00:00:00 2001
+From: test <test@test-desktop.(none)>
+Date: Thu, 20 Mar 2014 23:34:08 -0400
+Subject: [PATCH] 1.6.1_frameworks_base
+
+---
+ core/java/android/view/ViewGroup.java              |    4 ++--
+ libs/utils/IPCThreadState.cpp                      |    4 ++--
+ libs/utils/MemoryDealer.cpp                        |    4 ++--
+ services/java/com/android/server/SystemServer.java |    4 ++--
+ 4 files changed, 8 insertions(+), 8 deletions(-)
+
+diff --git a/core/java/android/view/ViewGroup.java b/core/java/android/view/ViewGroup.java
+index f7b7f02..1df38c3 100644
+--- a/core/java/android/view/ViewGroup.java
++++ b/core/java/android/view/ViewGroup.java
+@@ -1433,12 +1433,12 @@ public abstract class ViewGroup extends View implements ViewParent, ViewManager
+         // Sets the flag as early as possible to allow draw() implementations
+         // to call invalidate() successfully when doing animations
+         child.mPrivateFlags |= DRAWN;
+-
++/*
+         if (!concatMatrix && canvas.quickReject(cl, ct, cr, cb, Canvas.EdgeType.BW) &&
+                 (child.mPrivateFlags & DRAW_ANIMATION) == 0) {
+             return more;
+         }
+-
++*/
+         child.computeScroll();
+ 
+         final int sx = child.mScrollX;
+diff --git a/libs/utils/IPCThreadState.cpp b/libs/utils/IPCThreadState.cpp
+index 04ae142..180f453 100644
+--- a/libs/utils/IPCThreadState.cpp
++++ b/libs/utils/IPCThreadState.cpp
+@@ -370,8 +370,8 @@ void IPCThreadState::clearCaller()
+         mCallingPid = getpid();
+         mCallingUid = getuid();
+     } else {
+-        mCallingPid = -1;
+-        mCallingUid = -1;
++        mCallingPid = getpid();//-1;
++        mCallingUid = 1000;//-1;
+     }
+ }
+ 
+diff --git a/libs/utils/MemoryDealer.cpp b/libs/utils/MemoryDealer.cpp
+index cf8201b..7cd645a 100644
+--- a/libs/utils/MemoryDealer.cpp
++++ b/libs/utils/MemoryDealer.cpp
+@@ -394,7 +394,7 @@ SimpleMemory::~SimpleMemory()
+ #ifndef NDEBUG
+         memset(start_ptr, 0xdf, size);
+ #endif
+-
++/*
+         // MADV_REMOVE is not defined on Dapper based Goobuntu 
+ #ifdef MADV_REMOVE 
+         if (size) {
+@@ -402,7 +402,7 @@ SimpleMemory::~SimpleMemory()
+             LOGW_IF(err, "madvise(%p, %u, MADV_REMOVE) returned %s",
+                     start_ptr, size, err<0 ? strerror(errno) : "Ok");
+         }
+-#endif
++#endif*/
+     }
+ }
+ 
+diff --git a/services/java/com/android/server/SystemServer.java b/services/java/com/android/server/SystemServer.java
+index b2848ac..f18adcc 100644
+--- a/services/java/com/android/server/SystemServer.java
++++ b/services/java/com/android/server/SystemServer.java
+@@ -304,7 +304,7 @@ class ServerThread extends Thread {
+             } catch (Throwable e) {
+                 Log.e(TAG, "Failure starting Audio Service", e);
+             }
+-
++/*
+             try {
+                 Log.i(TAG, "Starting HeadsetObserver");
+                 // Listen for wired headset changes
+@@ -312,7 +312,7 @@ class ServerThread extends Thread {
+             } catch (Throwable e) {
+                 Log.e(TAG, "Failure starting HeadsetObserver", e);
+             }
+-
++*/
+             try {
+                 if (INCLUDE_BACKUP) {
+                     Log.i(TAG, "Starting Backup Service");
+-- 
+1.7.0.4
+

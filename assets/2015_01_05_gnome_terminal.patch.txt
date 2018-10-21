@@ -1,0 +1,644 @@
+diff --git a/src/terminal-accels.c b/src/terminal-accels.c
+index b7377c0..d3444bc 100644
+--- a/src/terminal-accels.c
++++ b/src/terminal-accels.c
+@@ -53,6 +53,8 @@
+ #define ACCEL_PATH_SAVE_CONTENTS        ACCEL_PATH_ROOT "FileSaveContents"
+ #define ACCEL_PATH_CLOSE_TAB            ACCEL_PATH_ROOT "FileCloseTab"
+ #define ACCEL_PATH_CLOSE_WINDOW         ACCEL_PATH_ROOT "FileCloseWindow"
++#define ACCEL_PATH_BIND_KEY             ACCEL_PATH_ROOT "BindKey"
++#define ACCEL_PATH_ShowContent_KEY      ACCEL_PATH_ROOT "ShowContent"
+ #define ACCEL_PATH_COPY                 ACCEL_PATH_ROOT "EditCopy"
+ #define ACCEL_PATH_PASTE                ACCEL_PATH_ROOT "EditPaste"
+ #define ACCEL_PATH_TOGGLE_MENUBAR       ACCEL_PATH_ROOT "ViewMenubar"
+@@ -73,6 +75,8 @@
+ 
+ #define KEY_CLOSE_TAB           CONF_KEYS_PREFIX "/close_tab"
+ #define KEY_CLOSE_WINDOW        CONF_KEYS_PREFIX "/close_window"
++#define KEY_BIND_KEY            CONF_KEYS_PREFIX "/bind_key"
++#define KEY_ShowContent_KEY     CONF_KEYS_PREFIX "/showcontent_key"
+ #define KEY_COPY                CONF_KEYS_PREFIX "/copy"
+ #define KEY_DETACH_TAB          CONF_KEYS_PREFIX "/detach_tab"
+ #define KEY_FULL_SCREEN         CONF_KEYS_PREFIX "/full_screen"
+@@ -124,12 +128,16 @@ static KeyEntry file_entries[] =
+     KEY_NEW_WINDOW, ACCEL_PATH_NEW_WINDOW, GDK_SHIFT_MASK | GDK_CONTROL_MASK, GDK_n, NULL, FALSE, TRUE },
+   { N_("New Profile"),
+     KEY_NEW_PROFILE, ACCEL_PATH_NEW_PROFILE, 0, 0, NULL, FALSE, TRUE },
+-  { N_("Save ContentsA"),
++  { N_("Save ContentsB"),
+     KEY_SAVE_CONTENTS, ACCEL_PATH_SAVE_CONTENTS, 0, 0, NULL, FALSE },
+   { N_("Close Tab"),
+     KEY_CLOSE_TAB, ACCEL_PATH_CLOSE_TAB, GDK_SHIFT_MASK | GDK_CONTROL_MASK, GDK_w, NULL, FALSE, TRUE },
+   { N_("Close Window"),
+     KEY_CLOSE_WINDOW, ACCEL_PATH_CLOSE_WINDOW, GDK_SHIFT_MASK | GDK_CONTROL_MASK, GDK_q, NULL, FALSE, TRUE },
++  { N_("Bind Key"),
++    KEY_BIND_KEY, ACCEL_PATH_BIND_KEY, GDK_SHIFT_MASK | GDK_CONTROL_MASK, 0, 0, NULL, FALSE },
++  { N_("Show Content"),
++    KEY_ShowContent_KEY, ACCEL_PATH_ShowContent_KEY, GDK_SHIFT_MASK | GDK_CONTROL_MASK, 0, 0, NULL, FALSE },
+ };
+ 
+ static KeyEntry edit_entries[] =
+diff --git a/src/terminal-window.c b/src/terminal-window.c
+index 32e963a..00f892b 100644
+--- a/src/terminal-window.c
++++ b/src/terminal-window.c
+@@ -39,6 +39,23 @@
+ #include "terminal-util.h"
+ #include "terminal-window.h"
+ 
++//#define MAX_SIZE_ONE_LINE 256
++#define MAX_SIZE_ONE_LINE 1024
++
++typedef struct cmd {
++    char key;
++    char discribe[50];
++    char cmds[MAX_SIZE_ONE_LINE];
++    struct cmd* next;
++} cmd;
++
++typedef struct cmd_page {
++    int index; //start from 0
++    char title[20];
++    struct cmd* cmd_hdr;
++    struct cmd_page* next;
++} cmd_page;
++
+ struct _TerminalWindowPrivate
+ {
+   GtkActionGroup *action_group;
+@@ -136,6 +153,13 @@ static void file_new_tab_callback             (GtkAction *action,
+                                                TerminalWindow *window);
+ static void file_close_window_callback        (GtkAction *action,
+                                                TerminalWindow *window);
++static void file_bind_key                     (GtkAction *action,
++					       TerminalWindow *window);
++static void file_add_key                      (GtkAction *action,
++					       TerminalWindow *window);
++static void show_content                      (GtkAction *action,
++					       TerminalWindow *window);
++
+ static void file_save_contents_callback       (GtkAction *action,
+                                                TerminalWindow *window);
+ static void file_close_tab_callback           (GtkAction *action,
+@@ -1725,16 +1749,26 @@ terminal_window_init (TerminalWindow *window)
+       { "FileNewProfile", GTK_STOCK_OPEN, N_("New _Profile…"), "",
+         NULL,
+         G_CALLBACK (file_new_profile_callback) },
+-      { "FileSaveContents", GTK_STOCK_SAVE, N_("_Save ContentsA"), "",
++      { "FileSaveContents", GTK_STOCK_SAVE, N_("_Save ContentsC"), "",
+         NULL,
+         G_CALLBACK (file_save_contents_callback) },
+       { "FileCloseTab", GTK_STOCK_CLOSE, N_("C_lose Tab"), "<shift><control>W",
+         NULL,
+         G_CALLBACK (file_close_tab_callback) },
++      { "BindKey", GTK_STOCK_CLOSE, N_("Bind _Key"), "",
++	NULL,
++	G_CALLBACK (file_bind_key) },
++      { "AddKey", GTK_STOCK_CLOSE, N_("_Add Key"), "",
++	NULL,
++	G_CALLBACK (file_add_key) },
++      { "ShowContent", GTK_STOCK_CLOSE, N_("Show Content"), "",
++	NULL,
++	G_CALLBACK (show_content) },
++
+       { "FileCloseWindow", GTK_STOCK_CLOSE, N_("_Close Window"), "<shift><control>Q",
+         NULL,
+         G_CALLBACK (file_close_window_callback) },
+-
++      
+       /* Edit menu */
+       { "EditCopy", GTK_STOCK_COPY, NULL, "<shift><control>C",
+         NULL,
+@@ -3072,6 +3106,558 @@ file_close_window_callback (GtkAction *action,
+   gtk_widget_destroy (GTK_WIDGET (window));
+ }
+ 
++static TerminalWindow *shared_window;
++void button_clicked ( GtkWidget *button, gpointer data)
++{
++    GtkClipboard *clipboard;
++    clipboard = gtk_widget_get_clipboard (GTK_WIDGET (shared_window), GDK_SELECTION_CLIPBOARD);
++      
++    gtk_clipboard_set_text(clipboard, "pwd\n", -1);
++    //    vte_terminal_select_all (VTE_TERMINAL (priv->active_screen));
++    vte_terminal_paste_clipboard(VTE_TERMINAL (shared_window->priv->active_screen));
++
++}
++
++/*************************************
++   Add start
++***********************************/
++ 
++struct cmd *cmd_hdr = NULL, *cmd_p = NULL;
++struct cmd_page *cmd_page_hdr = NULL, *cmd_page_p = NULL;
++int pages_cnt = 0;  //number of pages
++ 
++GtkWidget **label_array = NULL;
++//GtkWidget *label;
++GtkWidget *notebook = NULL;
++void set_cmd_label() {
++    static int first_time = 0;
++    char str[1024];
++    char tmp_c[2];
++    struct cmd* cmd_node;
++    GtkWidget* label;
++    int i = 0;
++    //malloc label_p
++    if(!first_time)
++	label_array = malloc(sizeof(GtkWidget*) * pages_cnt);
++
++    cmd_page_p = cmd_page_hdr->next;
++    while(cmd_page_p) {
++	//cmd_node = cmd_hdr->next;
++	cmd_node = cmd_page_p->cmd_hdr->next;
++
++	if(!first_time)
++	    label = label_array[i++] = gtk_label_new ("");
++	else
++	    label = label_array[i++];
++	strcpy(str, "-----------------\n");
++	while(cmd_node) {
++	    tmp_c[0] = cmd_node->key;
++	    tmp_c[1] = '\0';
++	    strcat(str, tmp_c);
++	    strcat(str, ": ");
++	    strcat(str, cmd_node->discribe);
++	    strcat(str, "\n");
++	    cmd_node = cmd_node->next;
++	}
++	gtk_label_set_text (label, str);
++	cmd_page_p = cmd_page_p->next;
++	printf("#next#\n");
++    }
++    first_time = 1;
++    
++}
++static void key_press(GtkWidget *widget, GdkEventKey *event) {
++    static int old_key = 0;
++    GtkClipboard *clipboard;
++    struct cmd* cmd_node;
++    char cmd_bak[MAX_SIZE_ONE_LINE];
++    char *p, *c;
++    int sleep_time;
++    int current_page;
++    
++    clipboard = gtk_widget_get_clipboard (GTK_WIDGET (shared_window), GDK_SELECTION_CLIPBOARD);
++
++    if ((event->keyval >= 0x20) && (event->keyval <= 0xFF)) {
++	old_key = event->keyval;
++    } else if((event->keyval == 65365) || (event->keyval == 65366)) {
++	if(event->keyval == 65365) // Page Up
++	    //gtk_notebook_set_tab_pos (notebook, (((GtkNotebook *)notebook)->tab_pos + 1) % 4);
++	    gtk_notebook_prev_page(notebook);
++	else                       // Page Down
++	    gtk_notebook_next_page(notebook);
++    }
++    else {
++	if(event->keyval != 0xff0d)
++	    return;
++	current_page = gtk_notebook_get_current_page(notebook);
++	cmd_page_p = cmd_page_hdr->next;
++	while(cmd_page_p) {
++	    if(cmd_page_p->index == current_page)
++		break;
++	    cmd_page_p = cmd_page_p->next;
++	}
++	
++	cmd_node = cmd_page_p->cmd_hdr -> next;
++	while(cmd_node) {
++	    if(cmd_node->key == old_key) {
++		strcpy(cmd_bak, cmd_node->cmds);
++		c = cmd_bak;
++		printf("#ok: %s\n", c);
++		while((p = strstr(c, ","))) {
++		    printf("p: %s\n", p);
++		    *p = '\0';
++		    printf("p: %s\n", p+1);		    
++		    printf("%s\n", c);
++#if 1		    
++		    if(*c == '[' && *(p-1) == ']') {
++			*(p-1) = '\0';
++			c = c+1;
++			if(!strncmp(c, "sleep", 5)) {
++			    c = c+6;
++			    sleep_time = atoi(c);
++			    printf("sleep: %d\n", sleep_time);
++			    sleep(sleep_time);
++			} else if(!strncmp(c, "usleep", 6)) {
++			    c = c+7;
++			    sleep_time = atoi(c);
++			    printf("usleep: %d\n", sleep_time);
++			    usleep(sleep_time);
++			}
++		    } else {
++			//system(c);
++			printf("run: %s\n", c);
++			//strcat(c, "\n");
++			printf("#now run: %s\n", c);
++			gtk_clipboard_set_text(clipboard, c, -1);
++			
++			vte_terminal_paste_clipboard(VTE_TERMINAL (shared_window->priv->active_screen));			
++		    }
++#endif
++		    printf("p1: %s\n", p+1);		    
++		    c = p+1;
++		    printf("##left: %s\n", c);
++		} //end while
++		printf("run: %s\n", c);
++		//strcat(c, "\n");
++		gtk_clipboard_set_text(clipboard, c, -1);
++		vte_terminal_paste_clipboard(VTE_TERMINAL (shared_window->priv->active_screen));			
++		break;
++	    }
++	    cmd_node = cmd_node->next;
++	}
++    }
++#if 0    
++    else {
++	if(event->keyval != 0xff0d)
++	    return;
++	//	printf("I got a %x\n", event->keyval);
++	switch(old_key) {
++	case 0x33: // 3
++	    gtk_clipboard_set_text(clipboard, "su\n", -1);
++	    vte_terminal_paste_clipboard(VTE_TERMINAL (shared_window->priv->active_screen));
++	    sleep(1);
++	    gtk_clipboard_set_text(clipboard, "#edcVfr4%t\n", -1);
++	    vte_terminal_paste_clipboard(VTE_TERMINAL (shared_window->priv->active_screen));	    
++	    break;
++	case 0x34: //4
++	    gtk_clipboard_set_text(clipboard, "\n", -1);
++	    vte_terminal_paste_clipboard(VTE_TERMINAL (shared_window->priv->active_screen));
++	    break;
++	case 0x35: //5
++	    gtk_clipboard_set_text(clipboard, "grep -e Package -e Version /active/config/db/status\n", -1);
++	    vte_terminal_paste_clipboard(VTE_TERMINAL (shared_window->priv->active_screen));
++	    break;
++	case 0x36: //6
++	    gtk_clipboard_set_text(clipboard, "mount -o remount rw /active\n", -1);
++	    vte_terminal_paste_clipboard(VTE_TERMINAL (shared_window->priv->active_screen));
++	    break;
++	case 0x37: //7
++	    gtk_clipboard_set_text(clipboard, "source /vobs/onepltf/common/lte/env/csh/pltf_env.csh\n", -1);
++	    vte_terminal_paste_clipboard(VTE_TERMINAL (shared_window->priv->active_screen));
++	    sleep(2);
++	    gtk_clipboard_set_text(clipboard, "/ccase_enodeb/ss/lte/enodeb/tools/enb_cs_external  -add all\n", -1);
++	    vte_terminal_paste_clipboard(VTE_TERMINAL (shared_window->priv->active_screen));
++	    break;
++	case 0x39: //9 install new load
++	    gtk_clipboard_set_text(clipboard, "cd /home/enb0dev && chmod +x ./pkginstall.sh && ./pkginstall.sh ./ /passive/ && cd /passive/firmware/ && flash_eraseall /upassive && flashcp ./u-boot.bin /upassive \n", -1);
++	    vte_terminal_paste_clipboard(VTE_TERMINAL (shared_window->priv->active_screen));
++	    break;
++	case 0x61: //a install 2
++	    gtk_clipboard_set_text(clipboard, "exit\n", -1);
++	    vte_terminal_paste_clipboard(VTE_TERMINAL (shared_window->priv->active_screen));
++	    gtk_clipboard_set_text(clipboard, "exit\n", -1);
++	    vte_terminal_paste_clipboard(VTE_TERMINAL (shared_window->priv->active_screen));
++	    sleep(1);
++	    gtk_clipboard_set_text(clipboard, "cd /pltf/pltf/fsmg\n", -1);
++	    vte_terminal_paste_clipboard(VTE_TERMINAL (shared_window->priv->active_screen));
++	    usleep(500*1000);
++	    gtk_clipboard_set_text(clipboard, "ls\n", -1);
++	    vte_terminal_paste_clipboard(VTE_TERMINAL (shared_window->priv->active_screen));
++	    sleep(2);
++	    gtk_clipboard_set_text(clipboard, "activate\n", -1);
++	    vte_terminal_paste_clipboard(VTE_TERMINAL (shared_window->priv->active_screen));
++	    usleep(100*1000);
++	    gtk_clipboard_set_text(clipboard, "sh\n", -1);
++	    vte_terminal_paste_clipboard(VTE_TERMINAL (shared_window->priv->active_screen));
++	    usleep(200*1000);
++	    gtk_clipboard_set_text(clipboard, "su\n", -1);
++	    vte_terminal_paste_clipboard(VTE_TERMINAL (shared_window->priv->active_screen));
++	    usleep(300*1000);
++	    gtk_clipboard_set_text(clipboard, "#edcVfr4%t\n", -1);
++	    vte_terminal_paste_clipboard(VTE_TERMINAL (shared_window->priv->active_screen));
++	    usleep(300*1000);
++	    gtk_clipboard_set_text(clipboard, "reboot\n", -1);
++	    vte_terminal_paste_clipboard(VTE_TERMINAL (shared_window->priv->active_screen));
++
++	    break;
++	case 0x62: //b set_next_bootid.sh 0   
++	    gtk_clipboard_set_text(clipboard, "set_next_bootid.sh 0", -1);
++	    vte_terminal_paste_clipboard(VTE_TERMINAL (shared_window->priv->active_screen));
++	    break;
++	case 0x66: //f ftp eccm2
++	    gtk_clipboard_set_text(clipboard, "ftp 192.168.1.2\n", -1);
++	    vte_terminal_paste_clipboard(VTE_TERMINAL (shared_window->priv->active_screen));
++	    usleep(500*1000);
++	    gtk_clipboard_set_text(clipboard, "enb0dev\n", -1);
++	    vte_terminal_paste_clipboard(VTE_TERMINAL (shared_window->priv->active_screen));
++	    usleep(500*1000);
++	    gtk_clipboard_set_text(clipboard, "Qwe*90op\n", -1);
++	    vte_terminal_paste_clipboard(VTE_TERMINAL (shared_window->priv->active_screen));
++	    usleep(500*1000);
++	    gtk_clipboard_set_text(clipboard, "ls\n", -1);
++	    vte_terminal_paste_clipboard(VTE_TERMINAL (shared_window->priv->active_screen));
++	    break;
++	case 0x68: //h unix 131
++	    gtk_clipboard_set_text(clipboard, "ssh ladai@135.251.123.131\n", -1);
++	    vte_terminal_paste_clipboard(VTE_TERMINAL (shared_window->priv->active_screen));
++	    sleep(1);
++	    gtk_clipboard_set_text(clipboard, "asb#1234\n", -1);
++	    vte_terminal_paste_clipboard(VTE_TERMINAL (shared_window->priv->active_screen));
++	    break;
++	case 0x69: //i setview ladai_enb_lr143
++	    gtk_clipboard_set_text(clipboard, "ct setview ladai_enb_lr143\n", -1);
++	    vte_terminal_paste_clipboard(VTE_TERMINAL (shared_window->priv->active_screen));
++	    break;
++	case 0x6c: //l show_hral_trhead
++	    gtk_clipboard_set_text(clipboard, "grep -nr \"Name\" /proc/`pidof hral`/task/*/status\n", -1);
++	    vte_terminal_paste_clipboard(VTE_TERMINAL (shared_window->priv->active_screen));
++	    break;
++	case 0x6f: //o 3Edcvgy!
++	    gtk_clipboard_set_text(clipboard, "3Edcvgy!\n", -1);
++	    vte_terminal_paste_clipboard(VTE_TERMINAL (shared_window->priv->active_screen));
++	    break;
++
++	case 0x70: //p asb#1234
++	    gtk_clipboard_set_text(clipboard, "asb#1234\n", -1);
++	    vte_terminal_paste_clipboard(VTE_TERMINAL (shared_window->priv->active_screen));
++	    break;
++	case 0x71: //q
++	    gtk_clipboard_set_text(clipboard, "Qwe*90op\n", -1);
++	    vte_terminal_paste_clipboard(VTE_TERMINAL (shared_window->priv->active_screen));
++	    break;
++	case 0x72: //r source soc_env.sh
++	    gtk_clipboard_set_text(clipboard, "source /vobs/pltf_lr/src/env/view/run_env.csh\n", -1);
++	    vte_terminal_paste_clipboard(VTE_TERMINAL (shared_window->priv->active_screen));
++	    break;
++	case 0x73: //s source legacy_env.sh
++	    gtk_clipboard_set_text(clipboard, "source /vobs/onepltf/common/lte/env/csh/pltf_env.csh\n", -1);
++	    vte_terminal_paste_clipboard(VTE_TERMINAL (shared_window->priv->active_screen));
++	    break;
++	    
++	}
++    }
++#endif
++
++}
++
++
++void closeApp ( GtkWidget *window, gpointer data)
++{
++  gtk_main_quit();
++}
++
++ 
++void parse_cmd() {
++    FILE * fp;
++    char buffer[MAX_SIZE_ONE_LINE];
++    char cmds[MAX_SIZE_ONE_LINE];
++    struct cmd* cmd_node;
++    struct cmd_page* cmd_page_node;
++    char *p, *p_tmp;
++    int buffer_len;
++    int total_cmds = 0;
++    pages_cnt = 0;
++    fp = fopen("/home/test/.gnome_terminal_cmd", "r");
++    if(fp == NULL) {
++        printf("Can't open gnome_terminal_cmd\n");
++        exit(-1);
++    }
++
++    if(cmd_page_hdr != NULL) {
++	cmd_page_p = cmd_page_hdr->next;
++	while(cmd_page_p) {
++	    cmd_hdr = cmd_page_p->cmd_hdr;
++	    cmd_p = cmd_hdr->next;
++	    while(cmd_p) {
++		free(cmd_p);
++		cmd_p = cmd_p->next;
++	    }
++	    free(cmd_hdr);
++	    free(cmd_page_p);
++	    cmd_page_p = cmd_page_p->next;
++	}
++	free(cmd_page_hdr);
++    }
++
++    cmd_page_hdr = cmd_page_p = (struct cmd_page*)malloc(sizeof(struct cmd_page));
++    
++    
++    while(fgets(buffer, MAX_SIZE_ONE_LINE, fp)) {
++	//	cnt++;
++	if(buffer[0] == '#')
++	    continue;
++	if(!strncmp(buffer, "$PAGE", 5)) {
++	    // new page
++	    cmd_page_node = (struct cmdpage*)malloc(sizeof(struct cmd_page));
++	    cmd_page_node->next = NULL;
++	    cmd_page_node->index = pages_cnt++;
++	    buffer[strlen(buffer)-1] = '\0';
++	    strcpy(cmd_page_node->title, &buffer[6]);
++	    
++	    cmd_hdr = cmd_p = (struct cmd*)malloc(sizeof(struct cmd));
++	    cmd_page_node->cmd_hdr = cmd_p;
++	    continue;
++	}
++	cmd_node = (struct cmd*)malloc(sizeof(struct cmd));
++	buffer_len = strlen(buffer);
++	cmd_node->key = buffer[0];
++	p = &buffer[2+40-1];
++	while(*p == ' ')
++	    p--;
++	*(++p) = '\0';
++	p = &buffer[2];
++
++	strcpy(cmd_node->discribe, p);
++	p = &buffer[42];
++	// change \\n to \n
++	p_tmp = p;
++	while(*p) {
++	    if(*p == '\\' && *(p+1) == 'n') {
++		*(p) = 0xa;
++		*(p+1) = ' ';
++		p += 1;
++	    }
++	    p++;
++	}
++	p = p_tmp;
++	// change \\n to \n end
++	strcpy(cmd_node->cmds, p);
++	//sscanf(buffer, "%c%30s %30s", &(cmd_node->key), cmd_node->discribe, cmd_node->cmds);
++	cmd_node->next = NULL;
++	cmd_p->next = cmd_node;
++	cmd_p = cmd_p->next;
++	total_cmds++;
++	printf("%c  %s  %s\n", cmd_node->key, cmd_node->discribe, cmd_node->cmds);
++
++	//update page
++	cmd_page_node->next = NULL;
++	cmd_page_p->next = cmd_page_node;
++	cmd_page_p = cmd_page_p->next;
++	cmd_page_p->next = NULL;
++    }
++    fclose(fp);
++}
++
++void dump_cmd() {
++  cmd_p = cmd_hdr->next;
++  while(cmd_p) {
++      printf("%c -- %s -- %s\n", cmd_p->key, cmd_p->discribe, cmd_p->cmds);
++      cmd_p = cmd_p->next;
++  }
++  //  printf("%s\n", cmd_p->cmds);
++
++}
++
++//void *thread_func(void *arg) {
++void *thread_func() {
++        GtkWidget *window;
++	
++	GtkWidget *label;
++	GtkWidget *label2 = gtk_label_new("fsd");
++	//	GtkWidget *button;
++	//        gtk_init(&argc, &argv);
++	window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
++	//	button = gtk_button_new_with_label("Hello World!");
++	//	gtk_container_add(GTK_CONTAINER(window), button);
++	notebook = gtk_notebook_new ();
++	
++	//label = gtk_label_new ("");//(str);
++
++	gtk_notebook_set_tab_pos (GTK_NOTEBOOK (notebook), GTK_POS_TOP);
++	gtk_container_set_border_width (GTK_CONTAINER (notebook), 6);	
++	gtk_widget_show (notebook);
++
++	set_cmd_label();
++
++	cmd_page_p = cmd_page_hdr->next;
++	while(cmd_page_p) {
++	    label = label_array[cmd_page_p->index];
++	    //gtk_box_pack_end (GTK_BOX(hbox), notebook, FALSE, FALSE, 0);
++	    gtk_notebook_append_page (GTK_NOTEBOOK (notebook),
++				      label,
++				      gtk_label_new (cmd_page_p->title));
++	    cmd_page_p = cmd_page_p->next;
++	    gtk_widget_show(label);
++	}
++	//	gtk_notebook_append_page (GTK_NOTEBOOK (notebook),
++	//				  label2,
++	//				  gtk_label_new ("Passive DnD Mode2"));
++
++        //gtk_container_add(GTK_CONTAINER(window), label);
++	gtk_container_add(GTK_CONTAINER(window), notebook);
++	
++	g_signal_connect ( GTK_OBJECT (window), "destroy",
++                       G_CALLBACK (closeApp), NULL);
++	//	g_signal_connect(GTK_OBJECT (button), "clicked", 
++	//                   G_CALLBACK (button_clicked), 
++	//                   "Button 1");
++	g_signal_connect (window, "key-press-event",
++		    G_CALLBACK (key_press),
++		    NULL);
++
++        gtk_widget_show(window);
++        gtk_main ();
++	
++	//pthread_exit("Thank you for the CPU time");
++}
++
++static void
++show_content (GtkAction *action, TerminalWindow *window) {
++  GtkWidget *dialog;
++  GtkWidget *hbox;
++  GtkWidget *scrolledWindow;  
++  dialog = gtk_dialog_new_with_buttons ("Interactive Dialog",
++					GTK_WINDOW (window),
++					GTK_DIALOG_MODAL| GTK_DIALOG_DESTROY_WITH_PARENT,
++					GTK_STOCK_OK,
++					GTK_RESPONSE_OK,
++                                        "CANCEL",
++                                        GTK_RESPONSE_CANCEL,
++					NULL);
++  gtk_window_set_default_size (GTK_WINDOW (dialog), 450, 450);
++  scrolledWindow = gtk_scrolled_window_new(NULL, NULL);
++
++  hbox = gtk_hbox_new (FALSE, 8);
++  gtk_container_set_border_width (GTK_CONTAINER (hbox), 8);
++  gtk_box_pack_start (GTK_BOX (GTK_DIALOG (dialog)->vbox), hbox, TRUE, TRUE, 10);
++
++  GtkTextView *text_view = gtk_text_view_new ();
++  GtkTextBuffer *buffer = gtk_text_view_get_buffer (GTK_TEXT_VIEW (text_view));
++  gtk_container_add(GTK_CONTAINER(scrolledWindow), text_view);
++  
++  gtk_box_pack_start (GTK_BOX (hbox), scrolledWindow, TRUE, TRUE, 0);
++  
++  gtk_container_add (GTK_CONTAINER (dialog), hbox);
++
++  // set buffer text
++  GtkTextIter iter;
++  gtk_text_buffer_get_iter_at_offset (buffer, &iter, 0);
++  //gtk_text_buffer_insert (buffer, &iter, "The text widgesdfsafasfsad\nfsdfasdfasd\nas\n", -1);
++  //  gtk_message_dialog_format_secondary_text (GTK_MESSAGE_DIALOG (dialog), "%d", i);
++  TerminalWindowPrivate *priv = window->priv;
++
++  if (!priv->active_screen)
++    return;
++  
++  vte_terminal_select_all (VTE_TERMINAL (priv->active_screen));      
++  vte_terminal_copy_clipboard (VTE_TERMINAL (priv->active_screen));
++  //vte_terminal_paste_clipboard(VTE_TERMINAL (shared_window->priv->active_screen));  
++  //  gtk_text_buffer_insert (buffer, &iter, "The text widgesdfsafasfsad\nfsdfasdfasd\nas\n", -1);
++  gtk_text_buffer_paste_clipboard (buffer,
++				   gtk_widget_get_clipboard (GTK_WIDGET (window), GDK_SELECTION_CLIPBOARD),
++				   NULL, 1);
++  // set buffer text end
++
++  gtk_widget_show_all (hbox);
++  //gtk_widget_show_all (text_view);
++  //  gtk_widget_show_all (sw);
++  gtk_dialog_run (GTK_DIALOG (dialog));
++  gtk_widget_destroy (dialog);  
++    
++  //    printf("##show content##\n");    
++}
++
++static void
++file_add_key (GtkAction *action,
++	       TerminalWindow *window) {
++    TerminalWindowPrivate *priv = window->priv;    
++    if (!priv->active_screen)
++	return;
++    parse_cmd();
++    set_cmd_label();	
++}
++
++static void
++file_bind_key (GtkAction *action,
++	       TerminalWindow *window) {
++    static int inited = 0;
++    static pthread_t a_thread;
++    TerminalWindowPrivate *priv = window->priv;
++    GtkClipboard *clipboard;
++
++    
++    if (!priv->active_screen)
++	return;
++    shared_window = window;
++    if(!inited) {
++	//pthread_create(&a_thread, NULL, thread_func, NULL);
++	inited = 1;
++	parse_cmd();
++	//dump_cmd();
++	thread_func();
++	
++    }
++}
+ static void
+ save_contents_dialog_on_response (GtkDialog *dialog, gint response_id, gpointer terminal)
+ {
+diff --git a/src/terminal.xml b/src/terminal.xml
+index 179bed6..c836292 100644
+--- a/src/terminal.xml
++++ b/src/terminal.xml
+@@ -11,6 +11,9 @@
+       <separator />
+       <menuitem action="FileCloseTab" />
+       <menuitem action="FileCloseWindow" />
++      <menuitem action="BindKey" />
++      <menuitem action="AddKey" />      
++      <menuitem action="ShowContent" />      
+     </menu>
+     <menu action="Edit">
+       <menuitem action="EditCopy" />
