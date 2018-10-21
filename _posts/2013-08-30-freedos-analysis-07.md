@@ -15,7 +15,7 @@ OK，下面主要以变量使用为切入点分析kernel，
 
 Config: 配置KERNEL初始化需要的空间及默认加载的command文件
 
-![pic](http://fillzero.qiniudn.com/2014_09_29_freedos_config.jpg)
+![pic]({{ site.url }}/assets/2014_09_29_freedos_config.jpg)
 <pre>
 cu_psp
 f_node* f_nodes:	
@@ -46,7 +46,7 @@ main()
 </pre>
 
 下面是这几个config函数执行期间的输出，注意，我的软盘里没有放FDCONFIG, CONFIG.SYS文件。
-![pic](http://fillzero.qiniudn.com/2014_09_28_freedos_initkernel.jpg)
+![pic]({{ site.url }}/assets/2014_09_28_freedos_initkernel.jpg)
 
 <hr>
 KERNEL初始化完毕后，KERNEL需要的内存指针放在BSS段，具体分配的内容放在INIT段，大致被划分如下图，
@@ -55,7 +55,7 @@ KERNEL初始化完毕后，KERNEL需要的内存指针放在BSS段，具体分�
 在执行main函数之前，会将BSSEND段中的最后256个字节作为临时statck，这样C代码中函数调用需要的数据先放在这里。
 在PostConfig()函数中，根据Config.cfgStacks， Config.cfgStackSize会专门为KERNEL分配更大的栈空间。
 
-![pic](http://fillzero.qiniudn.com/2014_09_28_init_seg_use.jpg)
+![pic]({{ site.url }}/assets/2014_09_28_init_seg_use.jpg)
 
 内核所需空间分配完毕后，可用内存起始地址为：0x1382:0x400 = 0x13C20，
 所以lpbase = 0x13C20, first_mcb = 0x13C2

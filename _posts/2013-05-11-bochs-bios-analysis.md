@@ -17,7 +17,7 @@ BIOS是放在EEPROM中的。x86 PC上电的时候，BIOS被映射在1M内存的�
 ----------------------------------------------------
 
 CPU上电复位时，内部寄存器的状态如下图所示(来自Intel Arch Volume3: System Programming Guide)，其中CS:IP=F000:FFF0H
-![pic](http://fillzero.qiniudn.com/2014_09_25_intel_reset_register.jpg)
+![pic]({{ site.url }}/assets/2014_09_25_intel_reset_register.jpg)
 
 也就是说CPU执行的第一条指令是来自内存0xFFFF0处。这正好是1M内存的末端，存放BIOS的地方。
 
@@ -43,11 +43,11 @@ ndisasm -o 0xf0000 bios.bin > bios.asm
 
 最后调用int 19中断，若第一启动项为软盘，将软盘的前512字节载入到0x7c00出并跳转执行。
 
-![pic](http://fillzero.qiniudn.com/2014_09_25_bios_post.jpg)
+![pic]({{ site.url }}/assets/2014_09_25_bios_post.jpg)
 
 <hr>
 需要注意的是，在rom_scan的代码中，会检测vgabios，并跳到vgabios中初始化，初始化过程中显示如下版本信息：
 
-![pic](http://fillzero.qiniudn.com/2014_09_25_vgabios_init.jpg)
+![pic]({{ site.url }}/assets/2014_09_25_vgabios_init.jpg)
 
 好了，到这里应该对bios功能有大致了解，更多细节请查看源码。

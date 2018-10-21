@@ -9,7 +9,7 @@ categories: freedos
 
 这一节关注KERNEL.ASM文件，如前一节所述，KERNEL.ASM代码主要目的就是将INIT段copy 到内存高处，跳转到高处的INIT段执行，旧的INIT段被用作内核数据区和Stack区。
 
-![pic](http://fillzero.qiniudn.com/2014-09-28_kernel_asm_remove.jpg)
+![pic]({{ site.url }}/assets/2014-09-28_kernel_asm_remove.jpg)
 
 有一点须注意下，int 12中断获取的是内存大小，一般DOS系统内存为640KB，这里的bochs bios返回的是639KB，因为最后的1KB是bochs bios保留用的，用于
 键盘缓冲区等。

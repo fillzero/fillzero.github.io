@@ -42,5 +42,5 @@ mv tmpl.bin BIOS-bochs-legacy
 
 将生成的BIOS-bochs-legacy重命名为bios.bin，放置jpc的 resources/bios目录下,然后运行JPC，BIOS启动界面如下：
 
-![pic](http://fillzero.qiniudn.com/2014_09_25_jpc_bochs.jpg)
+![pic]({{ site.url }}/assets/2014_09_25_jpc_bochs.jpg)
 

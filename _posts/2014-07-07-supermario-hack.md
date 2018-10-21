@@ -11,8 +11,8 @@ categories: android
 
 折腾了半天，smali代码修改如下：
 
-![pic](http://fillzero.qiniudn.com/2014_10_08_supermario_hack.jpg)
+![pic]({{ site.url }}/assets/2014_10_08_supermario_hack.jpg)
 
 运行截图：
 
-![pic](http://fillzero.qiniudn.com/2014_10_08_supermario_run.jpg)
+![pic]({{ site.url }}/assets/2014_10_08_supermario_run.jpg)

@@ -12,8 +12,8 @@ categories: qemu
 在bios的启动detect_serial中,读取serial寄存器,调用栈如下:
 
 
-![pic](http://fillzero.qiniudn.com/2015_05_07_qemu_01.png)
+![pic]({{ site.url }}/assets/2015_05_07_qemu_01.png)
 
 <hr>
 
-![pic](http://fillzero.qiniudn.com/2015_05_07_qemu_02.png)
+![pic]({{ site.url }}/assets/2015_05_07_qemu_02.png)

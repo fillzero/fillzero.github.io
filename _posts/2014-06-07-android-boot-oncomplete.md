@@ -15,4 +15,4 @@ Android有开机启动项，很多应用（闹钟，微信）都是开机自启�
 
 下图左边为AMS进程， 右边为App进程
 
-![pic](http://fillzero.qiniudn.com/2014_10_08_onbootcomplate_road.jpg)
+![pic]({{ site.url }}/assets/2014_10_08_onbootcomplate_road.jpg)

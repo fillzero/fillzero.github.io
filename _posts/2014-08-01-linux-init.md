@@ -7,5 +7,5 @@ categories: linux
 
 linux kernel初始化完毕后，会执行/sbin/init，今天看看 init的执行流程：
 
-![pic](http://fillzero.qiniudn.com/2014_08_01_system_init.jpg)
+![pic]({{ site.url }}/assets/2014_08_01_system_init.jpg)
 

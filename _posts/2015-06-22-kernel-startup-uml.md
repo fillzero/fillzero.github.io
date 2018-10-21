@@ -11,4 +11,4 @@ categories: linux
 
 <font color="#FF0000">完全不用看代码了！</font>
 
-![pic](http://fillzero.qiniudn.com/2015_06-22_kernel_startup.png)
+![pic]({{ site.url }}/assets/2015_06-22_kernel_startup.png)

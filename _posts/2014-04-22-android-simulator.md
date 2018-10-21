@@ -44,8 +44,8 @@ Lunch menu... pick a combo:
 
 patch如下：
 <pre>
-Framework的patch： <a href="http://fillzero.qiniudn.com/0001-1.6.1_frameworks_base.patch.txt">http://fillzero.qiniudn.com/0001-1.6.1_frameworks_base.patch</a>
-development的patch： <a href="http://fillzero.qiniudn.com/0001-1.6.1_development.patch.txt">http://fillzero.qiniudn.com/0001-1.6.1_development.patch.txt</a>
+Framework的patch： <a href="{{ site.url }}/assets/0001-1.6.1_frameworks_base.patch.txt">{{ site.url }}/assets/0001-1.6.1_frameworks_base.patch</a>
+development的patch： <a href="{{ site.url }}/assets/0001-1.6.1_development.patch.txt">{{ site.url }}/assets/0001-1.6.1_development.patch.txt</a>
 </pre>
 
 编译出来的simulator放在 out/host/linux-x86/bin/下面
@@ -58,4 +58,4 @@ development的patch： <a href="http://fillzero.qiniudn.com/0001-1.6.1_developme
 1. 启动超快，2秒就能经Launcher
 2. 修改完framwork 代码，执行make framework，生成的jar包直接放在host simulator下，不需要push操作，直接重启即可，很方便。
 
-![pic](http://fillzero.qiniudn.com/2014_09_29_android_simulator_show.png)
+![pic]({{ site.url }}/assets/2014_09_29_android_simulator_show.png)

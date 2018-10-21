@@ -9,7 +9,7 @@ Tree 命令很实用，不足之处在于显示文件夹大小的时候，全部
 
 但是我需要的功能是显示这个文件夹下面所有的文件占用的磁盘空间。
 
-![pic](http://fillzero.qiniudn.com/2015_12_10_tree_show_directory_size.png)
+![pic]({{ site.url }}/assets/2015_12_10_tree_show_directory_size.png)
 
 现在就要加上这个功能。
 
@@ -17,21 +17,21 @@ Tree 命令很实用，不足之处在于显示文件夹大小的时候，全部
 
 tree 版本：1.5.3
 
-![pic](http://fillzero.qiniudn.com/2015_12_10_tree_add_function_show_size.png)
+![pic]({{ site.url }}/assets/2015_12_10_tree_add_function_show_size.png)
 
 
 改动后的效果显示，这样一眼就可以看出子目录中哪个文件夹占用空间最大了。
 
-![pic](http://fillzero.qiniudn.com/2015_12_10_mytree_show_directory_size.png)
+![pic]({{ site.url }}/assets/2015_12_10_mytree_show_directory_size.png)
 
 
 <hr>
 
 再来个分析android 编译后out目录下的不同目标文件夹的大小，一目了然哈 ^_^
 
-![pic](http://fillzero.qiniudn.com/2015_12_10_tree_dh_python_format.png)
+![pic]({{ site.url }}/assets/2015_12_10_tree_dh_python_format.png)
 
 
 <hr>
 
-patch： <a href="http://fillzero.qiniudn.com/2015_12_10_tree.patch.txt">tree.patch</a>
+patch： <a href="{{ site.url }}/assets/2015_12_10_tree.patch.txt">tree.patch</a>

@@ -25,23 +25,23 @@ categories: android
 1. 关于窗口缩小，刚开始的想法是将Activity放在一个Dialog或Toast当中，后来逐步跟踪代码，感觉方案不可行。
    然后在创建窗口的过程中尝试修改窗口的宽度到高度，可以了，截图：
    
-   <img src="http://fillzero.qiniudn.com/2014_10_08_android_try_small_window.jpg">
+   <img src="{{ site.url }}/assets/2014_10_08_android_try_small_window.jpg">
 
 2. 下面就是多个窗口可以同时显示，跟踪了ActivityManagerService.java代码，发现所有的窗口都放在一个栈中，只有顶层的窗口才能显示，修改代码，可以显示多个窗口了：
 
-   <img src="http://fillzero.qiniudn.com/2014_10_08_android_show_mulwindow.jpg">
+   <img src="{{ site.url }}/assets/2014_10_08_android_show_mulwindow.jpg">
 
 3. 既然有多个窗口同时显示，当点击屏幕的时候，须将焦点放置在对应位置的窗口。而Android总是用最上面的窗口处理Touch Event，跟踪单击屏幕时，系统调用栈：
 
-   <img src="http://fillzero.qiniudn.com/2014_10_08_android_findTargetWindow.jpg">
+   <img src="{{ site.url }}/assets/2014_10_08_android_findTargetWindow.jpg">
    
    修改处理流程，当点击其它窗口时，对应的窗口能够获取焦点。下面就是TestDialog的Activity在运行的情况下，可以移动Launcher的桌面时钟widget
 
-   <img src="http://fillzero.qiniudn.com/2014_10_08_android_mulwindow_move.jpg">
+   <img src="{{ site.url }}/assets/2014_10_08_android_mulwindow_move.jpg">
 
 4. 当非栈顶窗口获取到焦点时，应将其显示在最上面，修改ActivityManagerService.java
    下面是两个窗口，先运行Gallery，然后运行Browser，Browser在前面；当点击Gallery窗口时，将Gallery窗口显示在最前面
-   <img src="http://fillzero.qiniudn.com/2014_10_08_window_switch.jpg">
+   <img src="{{ site.url }}/assets/2014_10_08_window_switch.jpg">
 
 5. 然后就是窗口移动了，关于窗口的移动，算法如下：
   保存当前窗口的位置，pos_x, pos_y
@@ -58,8 +58,8 @@ categories: android
    simulator/wrapsim/DevFb.c 
    
    改完后的效果：
-   <img src="http://fillzero.qiniudn.com/2014_10_08_all_0.jpg"><br><br><br>
-   <img src="http://fillzero.qiniudn.com/2014_10_08_all_1.jpg">
+   <img src="{{ site.url }}/assets/2014_10_08_all_0.jpg"><br><br><br>
+   <img src="{{ site.url }}/assets/2014_10_08_all_1.jpg">
 </pre>
 
 --------------------------------------------
@@ -67,8 +67,8 @@ categories: android
 <pre>
 
 奉上修改的patch：
-framework的patch： <a href="http://fillzero.qiniudn.com/2014_10_08_0001-multiwindow_framework_base.patch.txt">0001-multiwindow_framework_base.patch</a>
-development的patch：<a href="http://fillzero.qiniudn.com/2014_10_08_0001-multiwindow_development.txt">0001-multiwindow_development.patch</a>
+framework的patch： <a href="{{ site.url }}/assets/2014_10_08_0001-multiwindow_framework_base.patch.txt">0001-multiwindow_framework_base.patch</a>
+development的patch：<a href="{{ site.url }}/assets/2014_10_08_0001-multiwindow_development.txt">0001-multiwindow_development.patch</a>
 </pre>
 
 {% highlight bash %}

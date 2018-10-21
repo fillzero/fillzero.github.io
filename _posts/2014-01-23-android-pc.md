@@ -31,7 +31,7 @@ image = /boot/kernel
 <li>在根目录中创建data文件夹</li>
 </pre>
 
-![pic](http://fillzero.qiniudn.com/2014_10_08_add_android_img.jpg)
+![pic]({{ site.url }}/assets/2014_10_08_add_android_img.jpg)
 
 然后重启，选择android-pc即可进入android 系统
 

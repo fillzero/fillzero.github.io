@@ -11,11 +11,11 @@ categories: linux
 
 其中探测网卡部分，依次调用kernel包含的驱动探测该驱动是否符合网卡。
 
-![pic](http://fillzero.qiniudn.com/2014_10_08_kernel_ne2k_road.jpg)
+![pic]({{ site.url }}/assets/2014_10_08_kernel_ne2k_road.jpg)
 
 <hr>
 <br>
 
 初始化网卡代码与虚拟网卡输出比对：
 
-![pic](http://fillzero.qiniudn.com/2014_10_08_kernel_ne2k_02.jpg)
+![pic]({{ site.url }}/assets/2014_10_08_kernel_ne2k_02.jpg)

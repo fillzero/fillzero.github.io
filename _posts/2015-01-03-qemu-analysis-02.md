@@ -19,7 +19,7 @@ Qemu自 0.10 版本后，使用了TCG 完成动态二进制翻译功能。
 
 Fabrice Bellard 把代码写得很巧妙，<font color="#FF0000">借助编译器生成源码，再编译成目标代码</font>，这种方法，我要好好学下。
 
-![pic](http://fillzero.qiniudn.com/2015_01_03_qemu_01.png)
+![pic]({{ site.url }}/assets/2015_01_03_qemu_01.png)
 
 <hr>
 我再详细跟踪下第一条BIOS指令，Qemu是如何生成目标代码并执行的。
@@ -29,7 +29,7 @@ Fabrice Bellard 把代码写得很巧妙，<font color="#FF0000">借助编译器
 先手动打上tb_find_fast断点，然后run，断点断住后，在gdb shell中执行source test.py，获取所有调用栈。
 
 
-![pic](http://fillzero.qiniudn.com/2015_01_03_qemu_02.png)
+![pic]({{ site.url }}/assets/2015_01_03_qemu_02.png)
 
 
 到这里，基本搞懂了Qemu是如何取指令，翻译成host指令，再执行的。

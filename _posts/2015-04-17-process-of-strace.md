@@ -13,7 +13,7 @@ strace的内部逻辑比较复杂，文字说不清除，我用自动化分析�
 
 精简后的关系图，如下：
 
-![pic](http://fillzero.qiniudn.com/2015_04_17_strace_internal_functions_call.png)
+![pic]({{ site.url }}/assets/2015_04_17_strace_internal_functions_call.png)
 
 
 代码分析总结:
@@ -26,7 +26,7 @@ strace的内部逻辑比较复杂，文字说不清除，我用自动化分析�
    kernel/include/linux/sched.h
 </pre>
 
-![pic](http://fillzero.qiniudn.com/2015_04_17_strace_kernel_task_traced.png)
+![pic]({{ site.url }}/assets/2015_04_17_strace_kernel_task_traced.png)
 
 
 <pre>
@@ -34,4 +34,4 @@ strace的内部逻辑比较复杂，文字说不清除，我用自动化分析�
    根据自动化调试结果，整理了下，如下图，<font color="#FF0000">都不用怎么看代码（strace源码有4万多行），花了不到半小时，就搞懂了strace内部原理！ ^_^</font>
 </pre>
 
-![pic](http://fillzero.qiniudn.com/2015_04_17_strace_code_summary.png)
+![pic]({{ site.url }}/assets/2015_04_17_strace_code_summary.png)

@@ -24,7 +24,7 @@ KERNEL.MAP列出了KERNEL.SYS文件由哪些内容组成。
 
 KERNEL.SYS由上往下分布着：CODE段， DATA段，BSS段， INIT段，STACK段。
 
-![pic](http://fillzero.qiniudn.com/2014_09_28_kernel_map.jpg)
+![pic]({{ site.url }}/assets/2014_09_28_kernel_map.jpg)
 
 重点在于INIT段，<font color="#ff0000">别有用心的将其放在最后，后面跟着statck段，而且设置Stack大小为0，为什么这样设计？</font>
 
@@ -63,7 +63,7 @@ tcc -1- -O -Z -d -I. -D__STDC__=0;DEBUG;KERNEL;I86;PROTO;ASMSUPT <font color="#f
 
 说了这么多，KERNEL.MAP详细组成部分还没有详细列出，列举如下：
 
-![pic](http://fillzero.qiniudn.com/2014_09_28_kernel_map_contains.jpg)
+![pic]({{ site.url }}/assets/2014_09_28_kernel_map_contains.jpg)
 
 <pre>
 解释下，CODE段由_TEXT, _IO_TEXT, _IO_FIXED_DATA三部分组成。

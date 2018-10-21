@@ -12,7 +12,7 @@ categories: freedos
 
 要先分析Image，因为Image是Fat12文件系统，引导扇区执行的时候，就是读取FAT12文件系统，找到KERNEL.SYS，将其加载到内存中并执行的。
 
-![pic](http://fillzero.qiniudn.com/2014_09_25_1.44_floppy.jpg)
+![pic]({{ site.url }}/assets/2014_09_25_1.44_floppy.jpg)
 
 上面是1.44M Image的大致结构图，1.44M = 1.44 * 1000 * 1024 = 0x168000
 
@@ -31,7 +31,7 @@ FAT1是存放文件占用的cluster，FAT2内容同FAT1，备份用的
 
 OK，下面是具体的1.44M虚拟软盘里面的内容，截图如下：
 
-![pic](http://fillzero.qiniudn.com/2014_09_26_1.44_floppy_content_.jpg)
+![pic]({{ site.url }}/assets/2014_09_26_1.44_floppy_content_.jpg)
 
 
 <br>

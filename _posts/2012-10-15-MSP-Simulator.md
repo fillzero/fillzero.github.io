@@ -16,8 +16,8 @@ categories: job
 
 运行截图:
 
-![pic](http://fillzero.qiniudn.com/2014_10_02_msp1.jpg)
+![pic]({{ site.url }}/assets/2014_10_02_msp1.jpg)
 
-![pic](http://fillzero.qiniudn.com/2014_10_02_msp2.jpg)
+![pic]({{ site.url }}/assets/2014_10_02_msp2.jpg)
 
-![pic](http://fillzero.qiniudn.com/2014_10_02_msp3.jpg)
+![pic]({{ site.url }}/assets/2014_10_02_msp3.jpg)

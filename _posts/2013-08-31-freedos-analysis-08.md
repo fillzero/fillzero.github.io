@@ -46,7 +46,7 @@ HelloStr:	db	"Hello World!"
 
 运行截图如下，左上角显示Hello World：
 
-![pic](http://fillzero.qiniudn.com/2014_09_29_freedos_run_simplecom.jpg)
+![pic]({{ site.url }}/assets/2014_09_29_freedos_run_simplecom.jpg)
 
 <hr>
 
@@ -60,11 +60,11 @@ HelloStr:	db	"Hello World!"
 
 因为是COM文件，所以流程为DosExec() -> DosComloader()，Kernel先设置好环境变量，然后将COMMAND.COM加载进内存，如下图
 
-![pic](http://fillzero.qiniudn.com/2014_09_29_freedos_comloader1.jpg)
+![pic]({{ site.url }}/assets/2014_09_29_freedos_comloader1.jpg)
 
 加载完后，在COMMAND.COM内存前0x100处设置PSP，然后设置新任务的寄存器及栈空间，最后执行跳转：
 
-![pic](http://fillzero.qiniudn.com/2014_09_29_freedos_comloader2.jpg)
+![pic]({{ site.url }}/assets/2014_09_29_freedos_comloader2.jpg)
 
 上面的代码，先在当前段的末尾处划分块空间，保存新任务的寄存器。以当前版本为例，此时mem段为0x13EB，为新任务选择的栈地址为0x13EB:0xFFFE。
 切换任务后，CS:IP为 13EB:100，即COMMAND.COM所在内存地址，开始执行COMMAND代码。
@@ -90,4 +90,4 @@ Flags    0246            0202
 
 最后，是COMMAND.COM执行时内存分配图：
 
-![pic](http://fillzero.qiniudn.com/2014_09_29_freedos_command_mem.jpg)
+![pic]({{ site.url }}/assets/2014_09_29_freedos_command_mem.jpg)
