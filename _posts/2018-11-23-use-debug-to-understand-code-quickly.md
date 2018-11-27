@@ -90,7 +90,7 @@ dump出来的数据越多好，越全越好。<br>
 1. 我们总结的数据还有调试器dump出来的准么?
 2. 我们总结的速度还有调试器dump出来的快么？
 
-再讨论下另外一个话题：<br>
+再思考另外几个问题：<br>
 在比如你独自一人写了一个上万行代码的软件，过了一阵子再回想这些代码，每个细节都还清楚么？头脑里是不是只剩下代码大概的”运行过程图"?<br>
 是你更清楚代码还是正在运行这个软件的机器更清楚？<br>
 如果每个Developer都对代码了如指掌，运行的程序好比数学证明一样完美可靠，那还需要跑测试case干嘛？<br>
@@ -117,12 +117,108 @@ OK，回到用调试器dump数据，这些数据比较原始，可读性/理解�
 
 下面举一个例子来实现我的“理论”。
 
-例如想搞懂wget这个软件的代码实现，
+例如想搞懂wget这个软件的代码实现：
+<li> 下载wget 源码 </li>
+<li> 编译debug版本的binary </li>
+<li> 导出函数符号 </li>
+   {% highlight bash %} $ nm wget | grep '[0-9a-z] [tT]' > wget.map {% endhighlight %}
+<li> gdb 7.0 以后版本支持python 扩展，可用python 脚本调用gdb 命令。 写个简单的 gdb_wget.py，目的是将所有的函数打上断点，断住后打印调用栈并继续运行：
+</li>
+{% highlight python %}
+$ cat gdb_wget.py
+gdb.execute("set logging on")
+gdb.execute("set height 0")
+
+f = open("wget.map", 'r')
+for line in f:
+	gdb.execute("b " + line[19:len(line)-1]);
+f.close()
+
+gdb.execute("run www.baidu.com");
+
+while 1:
+	gdb.execute("bt");
+	gdb.execute("c");
+{% endhighlight %}
+
+<li> 运行gdb 调试wget，将所用输出保存到gdb.log中，起来后执行 source gdb_wget.py， 控制权交给python 脚本。 </li>
+{% highlight bash %}
+$ gdb ./wget | tee gdb.log
+GNU gdb (Ubuntu 8.1-0ubuntu3) 8.1.0.20180409-git
+Copyright (C) 2018 Free Software Foundation, Inc.
+License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>
+This is free software: you are free to change and redistribute it.
+There is NO WARRANTY, to the extent permitted by law.  Type "show copying"
+and "show warranty" for details.
+This GDB was configured as "x86_64-linux-gnu".
+Type "show configuration" for configuration details.
+For bug reporting instructions, please see:
+<http://www.gnu.org/software/gdb/bugs/>.
+Find the GDB manual and other documentation resources online at:
+<http://www.gnu.org/software/gdb/documentation/>.
+For help, type "help".
+Type "apropos word" to search for commands related to "word"...
+Reading symbols from ./wget...done.
+(gdb) source gdb_wget.py 
+...............
+
+
+{% endhighlight %}
+
+
+运行结果见下图(1)，左边部分，得到wget运行时执行到的所有函数及调用栈。<br>
+下图(2)： 写个程序parse gdb.log， 得到可读性很好的程序运行路线。<br>
+下图(3)： 在Emacs中折叠部分非重要函数调用过程，高亮显示重点函数，我相信一眼即可理解wget大致代码原理。<br>
+
+我相信我就算死磕代码，花大量时间研究得很透彻，过了一个多月，头脑里差不多也就图(3)显示的调用过程。<br>
+而用这种方法，整个过程不到5分钟。<br>
+如果要我在wget的代码上增加个新功能，我就顺着这些调用过程，在恰当的位置加些函数实现。
+
+当然除了显示图(3)的样子外，还可以显示成类似UML格式的，只要有了原始的raw格式数据，即可生成任何适合自己理解的图。
+我收集的常用辅助工具：
+<li> http://ditaa.sourceforge.net/ </li>
+<li> http://www.graphviz.org/ </li>
+
+
+<img src="/assets/2018_11_27_backtrace_format.png" width="1200">
 
 。。。。。。。。。。。。
+
+<b>================================= 分割线 ================================</b>
+对于其它语言同样需要找到能控制调试器的方法，以Java为例：
+
+<li> 第一步：一个实例程序</li>
+{% highlight java %}
+public class Test {
+
+	public static void main(String[] args) {
+		onesInByte();
+	}
+
+	public static void onesInByte() {
+	}
+}
+{% endhighlight %}
+
+<li> 第二步：javac -g Test.java </li>
+<li> 第三步：jdb Test </li>
+<li> 第四步：输入： </li>
+{% highlight java %}
+stop in Test.main
+stop in Test.onesInByte
+run Test
+cont
+cont
+{% endhighlight %}
+
+可以写个程序控制输入操作达到自动画，jdb详细命令见： https://docs.oracle.com/javase/7/docs/technotes/tools/solaris/jdb.html
+
+我之前的一篇blog中分析 <a href="/android/android-arrayadapter.html">Android ArrayAdapter 界面创建流程</a>，里面的调用栈就是用这种方法合成的，根据调用栈即可画出方便理解的流程图：
+
+<img src="/assets/2014_10_08_simple_listAdapter2.jpg">
 
 <b>================================= 结尾 ==================================</b>
 
 “You can use a kernel debugger if you want to, and I won’t give you the cold shoulder because you have “sullied” yourself.”                                                                                   – Linus Torvalds
 
-貌似大神比较鄙视使用调试器，OK 这种方法姑且算是一种奇技淫巧吧，蝌蝌。
+貌似大神比较鄙视使用调试器，OK 此方法姑且算是一种奇技淫巧吧，蝌蝌 ～
