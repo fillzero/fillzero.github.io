@@ -182,9 +182,10 @@ Reading symbols from ./wget...done.
 
 <img src="/assets/2018_11_27_backtrace_format.png" width="1200">
 
-。。。。。。。。。。。。
+
 
 <b>================================= 分割线 ================================</b>
+
 对于其它语言同样需要找到能控制调试器的方法，以Java为例：
 
 <li> 第一步：一个实例程序</li>
@@ -211,7 +212,7 @@ cont
 cont
 {% endhighlight %}
 
-可以写个程序控制输入操作达到自动画，jdb详细命令见： https://docs.oracle.com/javase/7/docs/technotes/tools/solaris/jdb.html
+可以写个程序控制输入操作达到自动化，jdb详细命令见： https://docs.oracle.com/javase/7/docs/technotes/tools/solaris/jdb.html
 
 我之前的一篇blog中分析 <a href="/android/android-arrayadapter.html">Android ArrayAdapter 界面创建流程</a>，里面的调用栈就是用这种方法合成的，根据调用栈即可画出方便理解的流程图：
 
