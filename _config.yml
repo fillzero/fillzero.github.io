@@ -1,6 +1,7 @@
 permalink: /:categories/:title.html
 #pygments: true
-highlighter: pygments
+#highlighter: pygments
+highlighter: rouge
 safe: true
 
 paginate: 8
