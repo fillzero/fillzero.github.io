@@ -174,10 +174,11 @@ Reading symbols from ./wget...done.
 而用这种方法，整个过程不到5分钟。<br>
 如果要我在wget的代码上增加个新功能，我就顺着这些调用过程，在恰当的位置加些函数实现。
 
-当然除了显示图(3)的样子外，还可以显示成类似UML格式的，只要有了原始的raw格式数据，即可生成任何适合自己理解的图。
-我收集的常用辅助工具：
-<li> http://ditaa.sourceforge.net/ </li>
-<li> http://www.graphviz.org/ </li>
+当然除了显示图(3)的样子外，还可以显示成类似UML格式的，只要有了原始的raw格式数据，即可将它们转成画图工具的输入数据，生成适合自己理解的图。<br>
+我收集的辅助画图工具：
+<li> <a href="http://plantuml.com/">http://plantuml.com/</a> </li>
+<li> <a href="http://www.graphviz.org/">http://www.graphviz.org/</a> </li>
+<li> <a href="http://ditaa.sourceforge.net/">http://ditaa.sourceforge.net/</a> </li>
 
 
 <img src="/assets/2018_11_27_backtrace_format.png" width="1200">
@@ -212,13 +213,26 @@ cont
 cont
 {% endhighlight %}
 
-可以写个程序控制输入操作达到自动化，jdb详细命令见： https://docs.oracle.com/javase/7/docs/technotes/tools/solaris/jdb.html
+可以写个程序得到java class文件的所有方法，打上断点，并控制输入操作达到自动化<br>
+jdb详细命令见： https://docs.oracle.com/javase/7/docs/technotes/tools/solaris/jdb.html
 
 我之前的一篇blog中分析 <a href="/android/android-arrayadapter.html">Android ArrayAdapter 界面创建流程</a>，里面的调用栈就是用这种方法合成的，根据调用栈即可画出方便理解的流程图：
 
 <img src="/assets/2014_10_08_simple_listAdapter2.jpg">
 
 <b>================================= 结尾 ==================================</b>
+
+用这种方法理解大多数用户态（应用）程序基本上没多大问题。
+
+我遇到的不大适用的地方：
+1. 有些脚本语言调试功能较弱，不易生成调用栈。但此类语言大多用来写些辅助性的工具，代码量不算多。
+2. 函数式编程语言，如Ocmal，对于lambda函数会在编译时生成匿名函数，其函数符号名可读性很差，影响最后的整体理解。
+
+那如何用这种方式理解底层代码呢，例如操作系统？
+
+因为底层的CPU架构有很多种，可以借助QEMU，QEMU虚拟了各种平台的CPU指令，可以把QEMU当成调试器，就很容易“追踪”底层的代码了。
+
+再以大神的另一句话结尾吧。
 
 “You can use a kernel debugger if you want to, and I won’t give you the cold shoulder because you have “sullied” yourself.”                                                                                   – Linus Torvalds
 
