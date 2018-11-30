@@ -141,7 +141,7 @@ while 1:
 	gdb.execute("c");
 {% endhighlight %}
 
-<li> 运行gdb 调试wget，将所用输出保存到gdb.log中，起来后执行 source gdb_wget.py， 控制权交给python 脚本。 </li>
+<li> 运行gdb 调试wget，将所有输出保存到gdb.log中，起来后执行 source gdb_wget.py， 控制权交给python 脚本。 </li>
 {% highlight bash %}
 $ gdb ./wget | tee gdb.log
 GNU gdb (Ubuntu 8.1-0ubuntu3) 8.1.0.20180409-git
@@ -170,7 +170,7 @@ Reading symbols from ./wget...done.
 下图(2)： 写个程序parse gdb.log， 得到可读性很好的程序运行路线。<br>
 下图(3)： 在Emacs中折叠部分非重要函数调用过程，高亮显示重点函数，我相信一眼即可理解wget大致代码原理。<br>
 
-我相信我就算死磕代码，花大量时间研究得很透彻，过了一个多月，头脑里差不多也就图(3)显示的调用过程。<br>
+就算我死磕代码，花大量时间研究得很透彻，我相信过了一个多月，头脑里剩下保存的差不多也就图(3)显示的调用过程。<br>
 而用这种方法，整个过程不到5分钟。<br>
 如果要我在wget的代码上增加个新功能，我就顺着这些调用过程，在恰当的位置加些函数实现。
 
