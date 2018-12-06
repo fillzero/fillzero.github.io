@@ -55,7 +55,7 @@ Linus 大神说过 "<b>Read the Fucking Source Code</b>"， 但他没有具体�
 软件行业的万变在于有N个开发语言(C,JAVA,Python,..）， N个开发平台 (Linux, Windows, Android, ...)，N个开发框架，N个 此处省略XX字 。。。
 
 大神的不变在于找到一种通用的方式快速理解Source Code： (<b>我个人观点<b>)
-1. 掌握 Source Code Editor， 达到如火纯青的地步, 有两种神器可选：<br>
+1. 工欲善其事，必先利其器。掌握 Source Code Editor， 达到如火纯青的地步, 有两种神器可选：<br>
    Vim：编辑器之神 <br>
    Emacs：神的编辑器  (听名字应该选用Emacs ^_^)<br>
 
@@ -120,7 +120,7 @@ OK，回到用调试器dump数据，这些数据比较原始，可读性/理解�
 
 例如想搞懂wget这个软件的代码实现：
 <li> 下载wget 源码 </li>
-<li> 编译debug版本的binary </li>
+<li> 编译debug版本的binary （取消编译优化选项） </li>
 <li> 导出函数符号 </li>
    {% highlight bash %} $ nm wget | grep '[0-9a-z] [tT]' > wget.map {% endhighlight %}
 <li> gdb 7.0 以后版本支持python 扩展，可用python 脚本调用gdb 命令。 写个简单的 gdb_wget.py，目的是将所有的函数打上断点，断住后打印调用栈并继续运行：
