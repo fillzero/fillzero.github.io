@@ -60,4 +60,4 @@ x86模拟器： Bochs， JPC， VirtualBox都可以
 OK，下面分别是dostest.img在JPC和Virtualbox下运行的截图：
 
 ![pic]({{ site.url }}/assets/2014_09_25_jpc_run_freedos.jpg)
-![pic]({{ site.url }}/assets/2014_09_25_virtualbox_run_freedos.jpg)
+![pic]({{ site.url }}/assets/2014_09_25_virtualbox_run_freedos.png)
